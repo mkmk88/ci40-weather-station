@@ -24,7 +24,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <letmecreate/letmecreate.h>
+#include <letmecreate.h>
 #include <getopt.h>
 #include <stdio.h>
 #include <string.h>

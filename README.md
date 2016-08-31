@@ -17,7 +17,37 @@ The complete IoT Environment is builded with following components:
 ## Ci40 application specific dependencies
 This application uses the [Awa LightweightM2M](https://github.com/FlowM2M/AwaLWM2M) implementation of the OMA Lightweight M2M protocol to provide a secure and standards compliant device management solution without the need for an intimate knowledge of M2M protocols. Additionnaly MikroE Clicks support is done through [LetMeCreate library](https://github.com/CreatorDev/LetMeCreate).
 
-## Setup for execution
+## Integration with openWrt
+It's assumed that you have build envriroment for ci40 openWrt described [here](https://github.com/CreatorKit/build) and this is located in folder `work`. So structure inside will be:
+
+    work/
+      build/  
+      constrained-os/  
+      dist/
+      packages/
+
+Clone this repository into `work/packages`, after this operation structure will look:
+
+    work/
+      build/  
+      constrained-os/  
+      dist/
+      packages/
+        weather-station-gateway
+
+Now copy folder from `packages/weather-station-gateway/feeds` into `work/dist/openwrt/openwrt-ckt-feeds`.
+Then execute commands:
+
+    cd work/dist/openwrt
+    ./scripts/feeds update
+    ./script/feeds update weather-station-gateway
+    ./script/feeds install weather-station-gateway
+    make menuconfig
+
+in menuconfig please press `/` and type `weather-station-gateway` one occurrence will appear. Mark it with `<*>` and do save of config.
+In terminal type `make` to build openwrt image with this application. After uploading to ci40 edit file located in `/etc/init.d/weather_station_initd` and put proper switch arguments related to clicks which you put into mikroBus port.
+
+## Setup for execution - development
 While Lumpy uses Awa Client Deamon to communicate with Cloud LWM2M server it requires few things to be done before project will run. First of all you need to go to CreatorKit console and create certificate which will be used to make secure connection. If you havent done this earlier, you will find usefull informations on [ Creator Device Server](https://docs.creatordev.io/deviceserver/) page. Then you have to provide IPSO object definitions, to do so please run `clientObjectsDefine.sh` shript from `scripts` folder (make sure Awa client deamon is working!). And here you go!
 Wait! No! Put some clicks into Ci40 mikroBUS, and then you can execute Lumpy with one of following options:
 
@@ -63,9 +93,5 @@ products derived from this software without specific prior written permission.
  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-
-----
 
 ----
