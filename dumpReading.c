@@ -365,7 +365,8 @@ void initialize() {
 		case ClickType_Thermo3:
 			break;
 		case ClickType_Weather:
-			if (weather_click_enable(index) < 0) {
+            i2c_select_bus(index);
+			if (weather_click_enable() < 0) {
 				LOG(LOG_ERROR, "Failed to enable weather click on bus#%d\n", index);
 			}
 			break;
