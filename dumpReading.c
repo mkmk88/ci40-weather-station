@@ -164,7 +164,8 @@ float readThermo3(uint8_t busIndex) {
 uint8_t readWeather(uint8_t busIndex, double* data) {
 	LOG(LOG_DEBUG, "Reading weather on bus#%d", busIndex);
 
-	if (weather_click_read_measurements(busIndex, &data[0], &data[1], &data[2]) < 0) {
+	i2c_select_bus(busIndex);
+	if (weather_click_read_measurements(&data[0], &data[1], &data[2]) < 0) {
 		LOG(LOG_ERROR, "Reading weather measurements failed!");
 		return -1;
 	}
