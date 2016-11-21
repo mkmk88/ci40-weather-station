@@ -50,7 +50,7 @@ In terminal type `make` to build openwrt image with this application. After uplo
 
 ## Setup For Execution - Development
 
-Lumpy uses Awa Client Daemon to communicate the with the Cloud LWM2M server It requires few steps to be done before running the project.   
+Lumpy uses an AWA LwM2M Client to communicate the with the Creator Device server It requires few steps to be done before running the project.   
 First of all you need to go to **Creator Developer Console** and create certificate which will be used to make secure connection. 
 If you havent done this earlier, you will find usefull informations on [ Creator Device Server](https://docs.creatordev.io/deviceserver/guides/iot-framework/) page. The execute the daemon run this command:
 
@@ -58,7 +58,7 @@ If you havent done this earlier, you will find usefull informations on [ Creator
  $ awa_clientd --bootstrap coaps://deviceserver.flowcloud.systems:15684 --endPointName WeatherStationDevice --certificate=/root/certificate.crt --ipcPort 12345 -p7000 -d
 ```
 
-Then you have to provide IPSO object definitions, to do so please run `clientObjectsDefine.sh` script from `scripts` folder (make sure Awa client deamon is working!). 
+Then you have to provide IPSO object definitions, to do so please run `clientObjectsDefine.sh` script from `scripts` folder (make sure the AWA LwM2M Client Daemon is working!). 
 
 ```bash
  $ ./clientObjectsDefine.sh
