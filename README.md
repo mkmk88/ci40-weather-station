@@ -87,12 +87,12 @@ Finally, you can check the updated temperature values on the **Creator Developer
 
 From wide range of [MikroE clicks](http://www.mikroe.com/index.php?url=store/click/) in this project you can use:
 
-| Click                | 
-|--------------------- |
-| [Air Quality](http://www.mikroe.com/click/air-quality/) | 
-| [Carbon Monoxide](http://www.mikroe.com/click/co/) |
-| [Thermo3](http://www.mikroe.com/click/thermo3/) | 
-| [Thunder](http://www.mikroe.com/click/thunder/) |
-| [Weather](http://www.mikroe.com/click/weather/) |
+| Click                                                   | weatherStation argument name |
+|-------------------------------------------------------- | ---------------------------- | 
+| [Air Quality](http://www.mikroe.com/click/air-quality/) | air                          |
+| [Carbon Monoxide](http://www.mikroe.com/click/co/)      | co                           |
+| [Thermo3](http://www.mikroe.com/click/thermo3/)         | thermo3                      |
+| [Thunder](http://www.mikroe.com/click/thunder/)         | thunder                      |
+| [Weather](http://www.mikroe.com/click/weather/)         | weather                      |
 
 ----
