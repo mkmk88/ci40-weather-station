@@ -36,13 +36,13 @@ Clone this repository into `work/packages`, after this operation structure will 
       packages/
         weather-station-gateway
 
-Now copy folder from `packages/weather-station-gateway/feeds` into `work/dist/openwrt/openwrt-ckt-feeds`.
+Now copy folder from `packages/weather-station-gateway/feeds` into `work/dist/openwrt-ckt-feeds`.
 Then execute commands:
 
     cd work/dist/openwrt
     ./scripts/feeds update
-    ./script/feeds update weather-station-gateway
-    ./script/feeds install weather-station-gateway
+    ./scripts/feeds update weather-station-gateway
+    ./scripts/feeds install weather-station-gateway
     make menuconfig
 
 in menuconfig please press `/` and type `weather-station-gateway` one occurrence will appear. Mark it with `<*>` and do save of config.
