@@ -161,6 +161,24 @@ float readThermo3(uint8_t busIndex) {
     return temperature;
 }
 
+float readCO(uint8_t busIndex) {
+    LOG(LOG_DEBUG, "Reading CO on bus#%d", busIndex);
+    uint16_t value = 0;
+
+    co_click_get_measure(busIndex, &value);
+
+    return value;
+}
+
+float readAirQuality(uint8_t busIndex) {
+    LOG(LOG_DEBUG, "Reading air quality on bus#%d", busIndex);
+    uint16_t value = 0;
+
+    air_quality_click_get_measure(busIndex, &value);
+
+    return value;
+}
+
 uint8_t readWeather(uint8_t busIndex, double* data) {
 	LOG(LOG_DEBUG, "Reading weather on bus#%d", busIndex);
 
@@ -309,19 +327,19 @@ void performMeasurements() {
 
     int index;
     int instanceIndex[] = {0,		//3303 - temperature
- 			   1, 		//3304 - humidity
-			   2,		//3315 - barometer
-			   3,		//3325 - concentration
-			   4,		//3330 - distance
-    			   5};		//3328 - power
+						   1, 		//3304 - humidity
+						   2,		//3315 - barometer
+						   3,		//3325 - concentration
+						   4,		//3330 - distance
+						   5};		//3328 - power
 
     //contains last used instance ids for all registered sensors
     int instances[] = {0,	//3303
-    		       0,	//3304
-		       0,	//3315
-	               0,	//3325
-		       0,	//3330
-		       0};	//3328
+					   0,	//3304
+					   0,	//3315
+					   0,	//3325
+					   0,	//3330
+					   0};	//3328
 
     for (index = 0; index < 2; index++) {
         uint8_t bus = index == 0 ? MIKROBUS_1 : MIKROBUS_2;
@@ -340,8 +358,12 @@ void performMeasurements() {
 
             	break;
             case ClickType_Thunder:
+            	break;
             case ClickType_AirQuality:
+            	handleMeasurements(bus, 3325, instances[instanceIndex[3]]++, &readAirQuality);
+            	break;
             case ClickType_CODetector:
+            	handleMeasurements(bus, 3325, instances[instanceIndex[3]]++, &readCO);
                 break;
             default:
                 break;
