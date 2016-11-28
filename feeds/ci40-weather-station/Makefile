@@ -1,6 +1,6 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=weather-station-gateway
+PKG_NAME:=ci40-weather-station
 PKG_VERSION:=HEAD
 PKG_RELEASE:=1
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
@@ -22,14 +22,14 @@ CMAKE_OPTIONS += -DSTAGING_DIR=$(STAGING_DIR)
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
 
-define Package/weather-station-gateway
+define Package/ci40-weather-station
   SECTION:=utils
   CATEGORY:=Utilities
   DEPENDS:= +awalwm2m +letmecreate
   TITLE:=Weather Station gateway app
 endef
 
-define Package/weather-station-gateway/description
+define Package/ci40-weather-station/description
   Imagination Technologies Weather Station gateway app
 endef
 
@@ -41,7 +41,7 @@ define Build/Clean
 	$(call Build/Compile/Default,clean)
 endef
 
-define Package/weather-station-gateway/install
+define Package/ci40-weather-station/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/* $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scripts/clientObjectsDefine.sh $(1)/usr/bin
