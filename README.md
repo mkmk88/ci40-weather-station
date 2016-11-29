@@ -3,9 +3,18 @@
 
 # The Lumpy Ci40 Application  
 
-The Lumpy Ci40 is part of bigger project called "Weather Station". Using code from this repository you will be able to handle various sensor clicks inserted into your Ci40 board. Values measured by those clicks will be sent to Creator Device Server. 
+The Lumpy Ci40 is part of bigger project called "Weather Station". Using code from this repository you will be able to handle various sensor clicks inserted into your Ci40 board. Values measured by those clicks will be sent to Creator Device Server.
 
 ---
+
+## Build Status
+
+Master
+[![Build Status](https://travis-ci.org/CreatorDev/ci40-weather-station.svg?branch=master)](https://github.com/CreatorDev/ci40-weather-station)
+
+
+Dev
+[![Build Status](https://travis-ci.org/CreatorDev/ci40-weather-station.svg?branch=dev)](https://github.com/CreatorDev/ci40-weather-station)
 
 ## Environment for Weather Station project  
 The complete IoT Environment is builded with following components:
@@ -51,14 +60,14 @@ In terminal type `make` to build openwrt image with this application. After uplo
 ## Setup For Execution - Development
 
 Lumpy uses an AWA LwM2M Client to communicate the with the Creator Device server It requires few steps to be done before running the project.   
-First of all you need to go to **Creator Developer Console** and create certificate which will be used to make secure connection. 
+First of all you need to go to **Creator Developer Console** and create certificate which will be used to make secure connection.
 If you havent done this earlier, you will find usefull informations on [ Creator Device Server](https://docs.creatordev.io/deviceserver/guides/iot-framework/) page. The execute the daemon run this command:
 
 ```bash
  $ awa_clientd --bootstrap coaps://deviceserver.flowcloud.systems:15684 --endPointName WeatherStationDevice --certificate=/root/certificate.crt --ipcPort 12345 -p7000 -d
 ```
 
-Then you have to provide IPSO object definitions, to do so please run `clientObjectsDefine.sh` script from `scripts` folder (make sure the AWA LwM2M Client Daemon is working!). 
+Then you have to provide IPSO object definitions, to do so please run `clientObjectsDefine.sh` script from `scripts` folder (make sure the AWA LwM2M Client Daemon is working!).
 
 ```bash
  $ ./clientObjectsDefine.sh
@@ -81,14 +90,14 @@ For example, connect a Thermo 3 Click (temperature sensor), to **MikroBus 1**. T
 ```bash
 $ ./weatherStation -1 thermo3
 ```
-Finally, you can check the updated temperature values on the **Creator Developer Console**. 
+Finally, you can check the updated temperature values on the **Creator Developer Console**.
 
 ## Supported Clicks
 
 From wide range of [MikroE clicks](http://www.mikroe.com/index.php?url=store/click/) in this project you can use:
 
 | Click                                                   | weatherStation argument name |
-|-------------------------------------------------------- | ---------------------------- | 
+|-------------------------------------------------------- | ---------------------------- |
 | [Air Quality](http://www.mikroe.com/click/air-quality/) | air                          |
 | [Carbon Monoxide](http://www.mikroe.com/click/co/)      | co                           |
 | [Thermo3](http://www.mikroe.com/click/thermo3/)         | thermo3                      |
