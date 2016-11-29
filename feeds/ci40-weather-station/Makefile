@@ -6,7 +6,7 @@ PKG_RELEASE:=1
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/CreatorDev/weather-station-gateway
+PKG_SOURCE_URL:=https://github.com/CreatorDev/ci40-weather-station
 
 #usefull for development
 #PKG_SOURCE_URL:=$(TOPDIR)/../../packages/weather-station-gateway
