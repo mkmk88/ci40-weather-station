@@ -19,4 +19,5 @@ script:
   - cd $HOME/build && wget $CI40_FILE_URL && tar xfj $CI40_SDK.tar.bz2
   - cd $CI40_SDK && echo src-link custom $HOME/build/custom_feed  >> feeds.conf.default
   - ./scripts/feeds update -a && ./scripts/feeds install -a
+  - make package/awalwm2m/compile
   - make package/ci40-weather-station/compile -j1 V=s
