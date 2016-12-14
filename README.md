@@ -65,6 +65,7 @@ source code, confortable setting the building environment for OpenWRT applicatio
 It's assumed that you have build envriroment for ci40 openWrt described 
 [here](https://github.com/CreatorKit/build) and this is located in folder `work`. 
 So structure inside will be:
+
     work/
       build/  
       constrained-os/  
@@ -113,10 +114,8 @@ between the AwaLWM2M Client (Ci40) and the Device Server. Then, transfer your
 2. Then execute the AwaLWM2M daemon. This daemon creates the AwaLWM2M client and 
 establishes the connection against the device server. Execute on Ci40 console: 
 
-## Setup For Execution - Development
-
 ```bash
-$ awa_clientd --bootstrap coaps://deviceserver.creatordev.io:15684 -s -c /root/certificate.crt --endPointName "weather_station" -d
+ awa_clientd --bootstrap coaps://deviceserver.creatordev.io:15684 -s -c /root/certificate.crt --endPointName "weather_station" -d
 ```
 **Note:** As the client is running as a daemon on background, any log will be 
 displayed on the console. However is possible to verify the process running on 
@@ -127,8 +126,8 @@ On **/usr/bin** you can find a script to execute the mapping. Execute on Ci40
 console:
 
 ```bash
-$ cd /usr/bin
-$ ./clientObjectsDefine.sh
+cd /usr/bin
+./clientObjectsDefine.sh
 ```
 
 **NOTE:** Make sure the AwaLWM2M Client Daemon is working. 
@@ -137,7 +136,7 @@ $ ./clientObjectsDefine.sh
 Ci40 MikroBUS 1 and execute the application.
 
 ```bash
-$ ./weatherStation -1 thermo3 -s 5 -v 5
+./weatherStation -1 thermo3 -s 5 -v 5
 ```
 
 If you check the [developer console](http://console.creatordev.io/), on the devices 
@@ -193,9 +192,7 @@ Please see the [license](LICENSE) file for a detailed explanation
 
 ## Contributing
 
-## Supported clicks
-From wide range of [MikroE clicks](http://www.mikroe.com/index.php?url=store/click/) in this project you can use:
 Any Bug fixes and/or feature enhancements are welcome. Please see the 
-[contributing](CONTRIBUTING.md) file for a detailed explanation. 
+[contributing](CONTRIBUTING.md) file for a detailed explanation.
 
 ----
