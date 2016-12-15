@@ -328,9 +328,6 @@ static void handleWeatherMeasurements(uint8_t busIndex,
 }
 
 static void performMeasurements(void) {
-    if (connectToAwa() == false)
-        return;
-
     int index;
     int instanceIndex[] = {0,        //3303 - temperature
                            1,         //3304 - humidity
@@ -375,8 +372,6 @@ static void performMeasurements(void) {
                 break;
         }
     }
-
-    disconnectAwa();
 }
 
 static void initialize(void) {
@@ -419,7 +414,10 @@ int main(int argc, char **argv) {
 
     initialize();
     while(_Running) {
-        performMeasurements();
+        if (connectToAwa()) {
+            performMeasurements();
+            disconnectAwa();
+        }
         sleep(g_SleepTime);
     }
 
