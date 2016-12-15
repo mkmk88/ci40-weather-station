@@ -18,7 +18,8 @@
  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-
+#include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <signal.h>
@@ -126,7 +127,11 @@ static bool loadConfiguration(int argc, char **argv) {
                 break;
 
             case 's':
-                g_SleepTime = atoi(optarg);
+                errno = 0;
+                g_SleepTime = strtoul(optarg, NULL, 10);
+                if ((g_SleepTime == ULONG_MAX && errno == ERANGE)
+                ||  (g_SleepTime == 0 && errno != 0))
+                    success = false;
                 break;
 
             case 'v':
