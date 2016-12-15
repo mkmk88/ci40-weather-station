@@ -47,6 +47,18 @@ typedef enum {
     ClickType_CODetector
 } ClickType;
 
+static const struct element {
+    char* name;
+    ClickType type;
+} types[] = {
+    {"air", ClickType_AirQuality},
+    {"co", ClickType_CODetector},
+    {"thermo3", ClickType_Thermo3},
+    {"thunder", ClickType_Thunder},
+    {"weather", ClickType_Weather},
+    {NULL, -1}
+};
+
 typedef struct {
     ClickType click1;
     ClickType click2;
@@ -73,19 +85,7 @@ static void exitApp(int __attribute__((unused))(signo)) {
 }
 
 ClickType configDecodeClickType(char* type) {
-    struct element {
-        char* name;
-        ClickType type;
-    } types[] = {
-        {"air", ClickType_AirQuality},
-        {"co", ClickType_CODetector},
-        {"thermo3", ClickType_Thermo3},
-        {"thunder", ClickType_Thunder},
-        {"weather", ClickType_Weather},
-        {NULL, -1}
-    };
-
-    struct element* iter = &types[0];
+    const struct element* iter = types;
     while (iter->name != NULL) {
         if (strcasecmp(iter->name, type) == 0)
             return iter->type;
