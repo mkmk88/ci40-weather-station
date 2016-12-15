@@ -1,3 +1,5 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+
 # Add executable targets
 ########################
 ADD_EXECUTABLE(weatherStation dumpReading.c)
