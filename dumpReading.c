@@ -197,25 +197,28 @@ static uint8_t readWeather(uint8_t busIndex, double* data) {
 
 static bool connectToAwa(void) {
     g_ClientSession = AwaClientSession_New();
-
-    if (g_ClientSession != NULL) {
-        if (AwaClientSession_SetIPCAsUDP(g_ClientSession, "127.0.0.1", 12345) == AwaError_Success) {
-            if (AwaClientSession_Connect(g_ClientSession) == AwaError_Success) {
-                LOG(LOG_INFO, "Client Session Established: 127.0.0.1:12345\n");
-            } else {
-                LOG(LOG_ERROR, "AwaClientSession_Connect() failed\n");
-                AwaClientSession_Free(&g_ClientSession);
-                g_ClientSession = NULL;
-            }
-        } else {
-            LOG(LOG_ERROR, "AwaClientSession_SetIPCAsUDP() failed\n");
-            AwaClientSession_Free(&g_ClientSession);
-            g_ClientSession = NULL;
-        }
-    } else {
+    if (g_ClientSession == NULL) {
         LOG(LOG_ERROR, "AwaClientSession_New() failed\n");
+        return false;
     }
-    return g_ClientSession != NULL;
+
+    if (AwaClientSession_SetIPCAsUDP(g_ClientSession, "127.0.0.1", 12345) != AwaError_Success) {
+        LOG(LOG_ERROR, "AwaClientSession_SetIPCAsUDP() failed\n");
+        AwaClientSession_Free(&g_ClientSession);
+        g_ClientSession = NULL;
+        return false;
+    }
+
+    if (AwaClientSession_Connect(g_ClientSession) != AwaError_Success) {
+        LOG(LOG_ERROR, "AwaClientSession_Connect() failed\n");
+        AwaClientSession_Free(&g_ClientSession);
+        g_ClientSession = NULL;
+        return false;
+    }
+
+    LOG(LOG_INFO, "Client Session Established: 127.0.0.1:12345\n");
+
+    return true;
 }
 
 static void disconnectAwa(void) {
