@@ -90,12 +90,12 @@ static void printUsage(const char *program)
         "                  air, co, none, thermo3, thunder, weather\n"
         " -2, --click2   : Type of click installed in microBus slot 2 (default:none)\n"
         "                  air, co, none, thermo3, thunder, weather\n"
-        " -s, --sleep    : delay between measurements in seconds. (default: 60s)\n"
+        " -s, --sleep    : delay between measurements in seconds. (default: %ds)\n"
         " -v, --logLevel : Debug level from 1 to 5\n"
         "                   fatal(1), error(2), warning(3), info(4), debug(5) and max(>5)\n"
         "                   default is info.\n"
         " -h, --help     : prints this help\n",
-        program);
+        program, DEFAULT_SLEEP_TIME);
 }
 
 static bool loadConfiguration(int argc, char **argv) {
