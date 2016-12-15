@@ -101,22 +101,17 @@ static void printUsage(const char *program)
 
 static bool loadConfiguration(int argc, char **argv) {
     bool success = true;
+    int c;
+    static struct option long_options[] = {
+    { "click1", required_argument, 0, '1' },
+    { "click2", required_argument, 0, '2' },
+    { "bus", required_argument, 0, 'b'},
+    { "logLevel", required_argument, 0, 'v'},
+    { "help", no_argument, 0, 'h'},
+    { "sleep", required_argument, 0, 's'},
+    { 0, 0, 0, 0 } };
 
-    while (true) {
-        static struct option long_options[] = {
-        { "click1", required_argument, 0, '1' },
-        { "click2", required_argument, 0, '2' },
-        { "bus", required_argument, 0, 'b'},
-        { "logLevel", required_argument, 0, 'v'},
-        { "help", no_argument, 0, 'h'},
-        { "sleep", required_argument, 0, 's'},
-        { 0, 0, 0, 0 } };
-
-        int c = getopt_long(argc, argv, "s:1:2:c:b:hv:", long_options, NULL);
-
-        if (c == -1)
-            break;
-
+    while ((c = getopt_long(argc, argv, "s:1:2:c:b:hv:", long_options, NULL)) != -1) {
         switch (c) {
             case '1':
                 g_Click1Type = configDecodeClickType(optarg);
