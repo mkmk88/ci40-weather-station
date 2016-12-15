@@ -99,7 +99,6 @@ static void printUsage(const char *program)
 }
 
 static bool loadConfiguration(int argc, char **argv) {
-    int c;
     bool success = true;
 
     while (true) {
@@ -113,7 +112,7 @@ static bool loadConfiguration(int argc, char **argv) {
         { 0, 0, 0, 0 } };
 
         int option_index = 0;
-        c = getopt_long(argc, argv, "s:1:2:c:b:hv:", long_options, &option_index);
+        int c = getopt_long(argc, argv, "s:1:2:c:b:hv:", long_options, &option_index);
 
         if (c == -1)
             break;
