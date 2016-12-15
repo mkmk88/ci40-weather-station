@@ -53,6 +53,11 @@ AwaClientSession* g_ClientSession;
 int g_LogLevel = LOG_INFO;
 FILE* g_DebugStream;
 int g_SleepTime = 60;   //default 1 minute
+static volatile bool _Running = true;
+
+static void exitApp(int __attribute__((unused))(signo)) {
+    _Running = false;
+}
 
 ClickType configDecodeClickType(char* type) {
     static struct element {
@@ -401,20 +406,30 @@ void initialize(void) {
 }
 
 int main(int argc, char **argv) {
+    struct sigaction action = {
+        .sa_handler = exitApp,
+        .sa_flags = 0
+    };
+
     if (loadConfiguration(argc, argv) == false) {
         return -1;
     }
 
-    signal(SIGINT, &cleanupOnExit);
-    atexit(&cleanupOnExit);
+    if (sigemptyset(&action.sa_mask) < 0
+    ||  sigaction(SIGINT, &action, NULL) < 0) {
+        LOG(LOG_ERROR, "Failed to set Control+C handler\n");
+        return -1;
+    }
 
     i2c_init();
 
     initialize();
-    while(true) {
+    while(_Running) {
         performMeasurements();
         sleep(g_SleepTime);
     }
+
+    cleanupOnExit();
 
     return 0;
 }
