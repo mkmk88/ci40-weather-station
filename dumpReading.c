@@ -51,7 +51,7 @@ ClickType g_Click2Type = ClickType_None;
 AwaClientSession* g_ClientSession;
 int g_LogLevel = LOG_INFO;
 FILE* g_DebugStream;
-int g_SleepTime = DEFAULT_SLEEP_TIME;   //default 1 minute
+unsigned int g_SleepTime = DEFAULT_SLEEP_TIME;   //default 1 minute
 static volatile bool _Running = true;
 
 static void exitApp(int __attribute__((unused))(signo)) {
