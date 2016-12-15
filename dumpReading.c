@@ -135,8 +135,10 @@ static bool loadConfiguration(int argc, char **argv, options *opts) {
                 errno = 0;
                 opts->sleepTime = strtoul(optarg, NULL, 10);
                 if ((opts->sleepTime == ULONG_MAX && errno == ERANGE)
-                ||  (opts->sleepTime == 0 && errno != 0))
+                ||  (opts->sleepTime == 0 && errno != 0)) {
                     success = false;
+                    LOG(LOG_ERROR, "Failed to parse sleep option.\n");
+                }
                 break;
 
             case 'v':
@@ -146,6 +148,7 @@ static bool loadConfiguration(int argc, char **argv, options *opts) {
                 ||  (errno != 0 && g_LogLevel == 0)) {
                     success = false;
                     g_LogLevel = LOG_INFO; /* Revert back to default log level */
+                    LOG(LOG_ERROR, "Failed to parse log level option.\n");
                 }
                 break;
 
