@@ -345,13 +345,6 @@ static void handleWeatherMeasurements(uint8_t busIndex,
 }
 
 static void performMeasurements(ClickType clickType, uint8_t busIndex) {
-    int instanceIndex[] = {0,        //3303 - temperature
-                           1,         //3304 - humidity
-                           2,        //3315 - barometer
-                           3,        //3325 - concentration
-                           4,        //3330 - distance
-                           5};        //3328 - power
-
     //contains last used instance ids for all registered sensors
     int instances[] = {0,    //3303
                        0,    //3304
@@ -362,24 +355,24 @@ static void performMeasurements(ClickType clickType, uint8_t busIndex) {
 
     switch (clickType) {
         case ClickType_Thermo3:
-            handleMeasurements(busIndex, 3303, instances[instanceIndex[0]]++, &readThermo3);
+            handleMeasurements(busIndex, 3303, instances[0]++, &readThermo3);
 
             break;
 
         case ClickType_Weather:
             handleWeatherMeasurements(busIndex,
-                    instances[instanceIndex[0]]++,
-                    instances[instanceIndex[1]]++,
-                    instances[instanceIndex[2]]++);
+                    instances[0]++,
+                    instances[1]++,
+                    instances[2]++);
 
             break;
         case ClickType_Thunder:
             break;
         case ClickType_AirQuality:
-            handleMeasurements(busIndex, 3325, instances[instanceIndex[3]]++, &readAirQuality);
+            handleMeasurements(busIndex, 3325, instances[3]++, &readAirQuality);
             break;
         case ClickType_CODetector:
-            handleMeasurements(busIndex, 3325, instances[instanceIndex[3]]++, &readCO);
+            handleMeasurements(busIndex, 3325, instances[3]++, &readCO);
             break;
         default:
             break;
