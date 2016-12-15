@@ -381,24 +381,19 @@ static void performMeasurements(ClickType clickType, uint8_t busIndex) {
     }
 }
 
-static void initialize(ClickType click1Type, ClickType click2Type) {
-    int index;
-    for (index = 0; index < 2; index++) {
-        uint8_t bus = index == 0 ? MIKROBUS_1 : MIKROBUS_2;
-
-        switch (index == 0 ? click1Type : click2Type) {
+static void initialize_click(ClickType clickType, uint8_t busIndex) {
+    switch (clickType) {
         case ClickType_Thermo3:
             break;
         case ClickType_Weather:
-            i2c_select_bus(index);
+            i2c_select_bus(busIndex);
             if (weather_click_enable() < 0)
-                LOG(LOG_ERROR, "Failed to enable weather click on bus#%d\n", index);
+                LOG(LOG_ERROR, "Failed to enable weather click on bus#%d\n", busIndex);
             break;
 
             //TODO: add rest if needed
         default:
             break;
-        }
     }
 }
 
@@ -424,7 +419,8 @@ int main(int argc, char **argv) {
 
     i2c_init();
 
-    initialize(opts.click1, opts.click2);
+    initialize_click(opts.click1, MIKROBUS_1);
+    initialize_click(opts.click2, MIKROBUS_2);
     while(_Running) {
         if (connectToAwa()) {
             performMeasurements(opts.click1, MIKROBUS_1);
