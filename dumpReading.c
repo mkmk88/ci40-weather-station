@@ -378,11 +378,6 @@ void performMeasurements(void) {
     disconnectAwa();
 }
 
-void cleanupOnExit(void) {
-    i2c_release();
-    disconnectAwa();
-}
-
 void initialize(void) {
     int index;
     for (index = 0; index < 2; index++) {
@@ -429,7 +424,8 @@ int main(int argc, char **argv) {
         sleep(g_SleepTime);
     }
 
-    cleanupOnExit();
+    i2c_release();
+    disconnectAwa();
 
     return 0;
 }
