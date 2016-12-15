@@ -99,7 +99,7 @@ static void printUsage(const char *program)
         program);
 }
 
-bool loadConfiguration(int argc, char **argv) {
+static bool loadConfiguration(int argc, char **argv) {
     int c;
     bool success = true;
 
@@ -153,7 +153,7 @@ bool loadConfiguration(int argc, char **argv) {
     return success;
 }
 
-float readThermo3(uint8_t busIndex) {
+static float readThermo3(uint8_t busIndex) {
     LOG(LOG_DEBUG, "Reading thermo3 on bus#%d", busIndex);
     float temperature = 0.f;
 
@@ -166,7 +166,7 @@ float readThermo3(uint8_t busIndex) {
     return temperature;
 }
 
-float readCO(uint8_t busIndex) {
+static float readCO(uint8_t busIndex) {
     LOG(LOG_DEBUG, "Reading CO on bus#%d", busIndex);
     uint16_t value = 0;
 
@@ -175,7 +175,7 @@ float readCO(uint8_t busIndex) {
     return value;
 }
 
-float readAirQuality(uint8_t busIndex) {
+static float readAirQuality(uint8_t busIndex) {
     LOG(LOG_DEBUG, "Reading air quality on bus#%d", busIndex);
     uint16_t value = 0;
 
@@ -184,7 +184,7 @@ float readAirQuality(uint8_t busIndex) {
     return value;
 }
 
-uint8_t readWeather(uint8_t busIndex, double* data) {
+static uint8_t readWeather(uint8_t busIndex, double* data) {
     LOG(LOG_DEBUG, "Reading weather on bus#%d", busIndex);
 
     i2c_select_bus(busIndex);
@@ -196,7 +196,7 @@ uint8_t readWeather(uint8_t busIndex, double* data) {
     return 0;
 }
 
-bool connectToAwa(void) {
+static bool connectToAwa(void) {
     g_ClientSession = AwaClientSession_New();
 
     if (g_ClientSession != NULL) {
@@ -219,7 +219,7 @@ bool connectToAwa(void) {
     return g_ClientSession != NULL;
 }
 
-void disconnectAwa(void) {
+static void disconnectAwa(void) {
     if (g_ClientSession == NULL) {
         return;
     }
@@ -227,7 +227,7 @@ void disconnectAwa(void) {
     AwaClientSession_Free(&g_ClientSession);
 }
 
-void createIPSO(int objectId, int instance, int resourceId) {
+static void createIPSO(int objectId, int instance, int resourceId) {
     AwaClientSetOperation * operation = AwaClientSetOperation_New(g_ClientSession);
 
     char buf[40];
@@ -246,7 +246,7 @@ void createIPSO(int objectId, int instance, int resourceId) {
     AwaClientSetOperation_Free(&operation);
 }
 
-void setIPSO(int objectId, int instance, int resourceId, float value, bool shouldRetry) {
+static void setIPSO(int objectId, int instance, int resourceId, float value, bool shouldRetry) {
     char buf[40];
     sprintf(&buf[0], "/%d/%d/%d", objectId, instance, resourceId);
     LOG(LOG_INFO, "Storing value %0.3f into %s", value, &buf[0]);
@@ -264,7 +264,7 @@ void setIPSO(int objectId, int instance, int resourceId, float value, bool shoul
     }
 }
 
-float getIPSO(int objectId, int instance, int resourceId, float defaultValue) {
+static float getIPSO(int objectId, int instance, int resourceId, float defaultValue) {
     char buf[40];
     sprintf(&buf[0], "/%d/%d/%d", objectId, instance, resourceId);
     LOG(LOG_DEBUG, "Getting value of %s", &buf[0]);
@@ -289,7 +289,7 @@ float getIPSO(int objectId, int instance, int resourceId, float defaultValue) {
     return resultValue;
 }
 
-uint8_t setMeasurement(int objId, int instance, double value) {
+static uint8_t setMeasurement(int objId, int instance, double value) {
 
     float minValue = getIPSO(objId, instance, 5601, 1000);
     float maxValue = getIPSO(objId, instance, 5602, -1000);
@@ -304,13 +304,13 @@ uint8_t setMeasurement(int objId, int instance, double value) {
     return 0;
 }
 
-void handleMeasurements(uint8_t bus, int objId, int instance, SensorReadFunc sensorFunc) {
+static void handleMeasurements(uint8_t bus, int objId, int instance, SensorReadFunc sensorFunc) {
     float value = sensorFunc(bus);
     setMeasurement(objId, instance, value);
 }
 
 
-void handleWeatherMeasurements(uint8_t busIndex,
+static void handleWeatherMeasurements(uint8_t busIndex,
         int temperatureInstance, int pressureInstance, int humidityInstance) {
 
     double data[] = {0,0,0};
@@ -325,7 +325,7 @@ void handleWeatherMeasurements(uint8_t busIndex,
     setMeasurement(3304, humidityInstance, data[2]);
 }
 
-void performMeasurements(void) {
+static void performMeasurements(void) {
     if (connectToAwa() == false) {
         return;
     }
@@ -378,7 +378,7 @@ void performMeasurements(void) {
     disconnectAwa();
 }
 
-void initialize(void) {
+static void initialize(void) {
     int index;
     for (index = 0; index < 2; index++) {
         uint8_t bus = index == 0 ? MIKROBUS_1 : MIKROBUS_2;
