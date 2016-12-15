@@ -65,21 +65,20 @@ static void exitApp(int __attribute__((unused))(signo)) {
 ClickType configDecodeClickType(char* type) {
     struct element {
         char* name;
-        ClickType mapsTo;
-    };
-    static struct element types[] = {
-            {"air", ClickType_AirQuality},
-            {"co", ClickType_CODetector},
-            {"thermo3", ClickType_Thermo3},
-            {"thunder", ClickType_Thunder},
-            {"weather", ClickType_Weather},
-            {NULL, -1}
+        ClickType type;
+    } types[] = {
+        {"air", ClickType_AirQuality},
+        {"co", ClickType_CODetector},
+        {"thermo3", ClickType_Thermo3},
+        {"thunder", ClickType_Thunder},
+        {"weather", ClickType_Weather},
+        {NULL, -1}
     };
 
     struct element* iter = &types[0];
     while (iter->name != NULL) {
         if (strcasecmp(iter->name, type) == 0)
-            return iter->mapsTo;
+            return iter->type;
 
         iter++;
     }
