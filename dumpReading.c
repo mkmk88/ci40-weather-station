@@ -137,8 +137,7 @@ static bool loadConfiguration(int argc, char **argv) {
 
             case 'h':
                 printUsage(argv[0]);
-                success = false;
-                break;
+                exit(0);
 
             case '?':
                 /* getopt_long already printed an error message. */
