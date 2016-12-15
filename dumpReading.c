@@ -39,7 +39,7 @@
 typedef float (*SensorReadFunc)(uint8_t);
 
 typedef enum {
-    ClickType_None = 0,
+    ClickType_None,
     ClickType_Thermo3,
     ClickType_Weather,
     ClickType_Thunder,
