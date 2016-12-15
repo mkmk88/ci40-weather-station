@@ -47,12 +47,15 @@ typedef enum {
     ClickType_CODetector
 } ClickType;
 
-ClickType g_Click1Type = ClickType_None;
-ClickType g_Click2Type = ClickType_None;
+typedef struct {
+    ClickType click1;
+    ClickType click2;
+    unsigned int sleepTime;     // in seconds
+} options;
+
 AwaClientSession* g_ClientSession;
 int g_LogLevel = LOG_INFO;
 FILE* g_DebugStream;
-unsigned int g_SleepTime = DEFAULT_SLEEP_TIME;   //default 1 minute
 static volatile bool _Running = true;
 
 static void exitApp(int __attribute__((unused))(signo)) {
@@ -99,7 +102,7 @@ static void printUsage(const char *program)
         program, DEFAULT_SLEEP_TIME);
 }
 
-static bool loadConfiguration(int argc, char **argv) {
+static bool loadConfiguration(int argc, char **argv, options *opts) {
     bool success = true;
     int c;
     static struct option long_options[] = {
@@ -114,18 +117,18 @@ static bool loadConfiguration(int argc, char **argv) {
     while ((c = getopt_long(argc, argv, "s:1:2:c:b:hv:", long_options, NULL)) != -1) {
         switch (c) {
             case '1':
-                g_Click1Type = configDecodeClickType(optarg);
+                opts->click1 = configDecodeClickType(optarg);
                 break;
 
             case '2':
-                g_Click2Type = configDecodeClickType(optarg);
+                opts->click2 = configDecodeClickType(optarg);
                 break;
 
             case 's':
                 errno = 0;
-                g_SleepTime = strtoul(optarg, NULL, 10);
-                if ((g_SleepTime == ULONG_MAX && errno == ERANGE)
-                ||  (g_SleepTime == 0 && errno != 0))
+                opts->sleepTime = strtoul(optarg, NULL, 10);
+                if ((opts->sleepTime == ULONG_MAX && errno == ERANGE)
+                ||  (opts->sleepTime == 0 && errno != 0))
                     success = false;
                 break;
 
@@ -331,7 +334,7 @@ static void handleWeatherMeasurements(uint8_t busIndex,
     setMeasurement(3304, humidityInstance, data[2]);
 }
 
-static void performMeasurements(void) {
+static void performMeasurements(ClickType click1Type, ClickType click2Type) {
     int index;
     int instanceIndex[] = {0,        //3303 - temperature
                            1,         //3304 - humidity
@@ -351,7 +354,7 @@ static void performMeasurements(void) {
     for (index = 0; index < 2; index++) {
         uint8_t bus = index == 0 ? MIKROBUS_1 : MIKROBUS_2;
 
-        switch (index == 0 ? g_Click1Type : g_Click2Type) {
+        switch (index == 0 ? click1Type : click2Type) {
             case ClickType_Thermo3:
                 handleMeasurements(bus, 3303, instances[instanceIndex[0]]++, &readThermo3);
 
@@ -378,12 +381,12 @@ static void performMeasurements(void) {
     }
 }
 
-static void initialize(void) {
+static void initialize(ClickType click1Type, ClickType click2Type) {
     int index;
     for (index = 0; index < 2; index++) {
         uint8_t bus = index == 0 ? MIKROBUS_1 : MIKROBUS_2;
 
-        switch (index == 0 ? g_Click1Type : g_Click2Type) {
+        switch (index == 0 ? click1Type : click2Type) {
         case ClickType_Thermo3:
             break;
         case ClickType_Weather:
@@ -400,12 +403,17 @@ static void initialize(void) {
 }
 
 int main(int argc, char **argv) {
+    options opts = {
+        .click1 = ClickType_None,
+        .click2 = ClickType_None,
+        .sleepTime = DEFAULT_SLEEP_TIME
+    };
     struct sigaction action = {
         .sa_handler = exitApp,
         .sa_flags = 0
     };
 
-    if (loadConfiguration(argc, argv) == false)
+    if (loadConfiguration(argc, argv, &opts) == false)
         return -1;
 
     if (sigemptyset(&action.sa_mask) < 0
@@ -416,13 +424,13 @@ int main(int argc, char **argv) {
 
     i2c_init();
 
-    initialize();
+    initialize(opts.click1, opts.click2);
     while(_Running) {
         if (connectToAwa()) {
-            performMeasurements();
+            performMeasurements(opts.click1, opts.click2);
             disconnectAwa();
         }
-        sleep(g_SleepTime);
+        sleep(opts.sleepTime);
     }
 
     i2c_release();
