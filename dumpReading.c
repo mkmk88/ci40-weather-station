@@ -11,10 +11,10 @@
         products derived from this software without specific prior written permission.
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
- WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
@@ -26,9 +26,7 @@
 #include <unistd.h>
 #include <letmecreate/letmecreate.h>
 #include <getopt.h>
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <awa/common.h>
 #include <awa/client.h>
 #include <awa/types.h>
@@ -39,7 +37,7 @@
 typedef float (*SensorReadFunc)(uint8_t);
 
 typedef enum {
-    ClickType_None = 0,
+    ClickType_None,
     ClickType_Thermo3,
     ClickType_Weather,
     ClickType_Thunder,
@@ -53,9 +51,14 @@ AwaClientSession* g_ClientSession;
 int g_LogLevel = LOG_INFO;
 FILE* g_DebugStream;
 int g_SleepTime = 60;   //default 1 minute
+static volatile bool _Running = true;
+
+static void exitApp(int __attribute__((unused))(signo)) {
+    _Running = false;
+}
 
 ClickType configDecodeClickType(char* type) {
-    static struct element {
+    struct element {
         char* name;
         ClickType mapsTo;
     };
@@ -70,9 +73,9 @@ ClickType configDecodeClickType(char* type) {
 
     struct element* iter = &types[0];
     while (iter->name != NULL) {
-        if (strcasecmp(iter->name, type) == 0) {
+        if (strcasecmp(iter->name, type) == 0)
             return iter->mapsTo;
-        }
+
         iter++;
     }
 
@@ -94,7 +97,7 @@ static void printUsage(const char *program)
         program);
 }
 
-bool loadConfiguration(int argc, char **argv) {
+static bool loadConfiguration(int argc, char **argv) {
     int c;
     bool success = true;
 
@@ -111,7 +114,8 @@ bool loadConfiguration(int argc, char **argv) {
         int option_index = 0;
         c = getopt_long(argc, argv, "s:1:2:c:b:hv:", long_options, &option_index);
 
-        if (c == -1) break;
+        if (c == -1)
+            break;
 
         switch (c) {
             case '1':
@@ -148,7 +152,7 @@ bool loadConfiguration(int argc, char **argv) {
     return success;
 }
 
-float readThermo3(uint8_t busIndex) {
+static float readThermo3(uint8_t busIndex) {
     LOG(LOG_DEBUG, "Reading thermo3 on bus#%d", busIndex);
     float temperature = 0.f;
 
@@ -161,7 +165,7 @@ float readThermo3(uint8_t busIndex) {
     return temperature;
 }
 
-float readCO(uint8_t busIndex) {
+static float readCO(uint8_t busIndex) {
     LOG(LOG_DEBUG, "Reading CO on bus#%d", busIndex);
     uint16_t value = 0;
 
@@ -170,7 +174,7 @@ float readCO(uint8_t busIndex) {
     return value;
 }
 
-float readAirQuality(uint8_t busIndex) {
+static float readAirQuality(uint8_t busIndex) {
     LOG(LOG_DEBUG, "Reading air quality on bus#%d", busIndex);
     uint16_t value = 0;
 
@@ -179,19 +183,19 @@ float readAirQuality(uint8_t busIndex) {
     return value;
 }
 
-uint8_t readWeather(uint8_t busIndex, double* data) {
-	LOG(LOG_DEBUG, "Reading weather on bus#%d", busIndex);
+static uint8_t readWeather(uint8_t busIndex, double* data) {
+    LOG(LOG_DEBUG, "Reading weather on bus#%d", busIndex);
 
-	i2c_select_bus(busIndex);
-	if (weather_click_read_measurements(&data[0], &data[1], &data[2]) < 0) {
-		LOG(LOG_ERROR, "Reading weather measurements failed!");
-		return -1;
-	}
+    i2c_select_bus(busIndex);
+    if (weather_click_read_measurements(&data[0], &data[1], &data[2]) < 0) {
+        LOG(LOG_ERROR, "Reading weather measurements failed!");
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
-bool connectToAwa() {
+static bool connectToAwa(void) {
     g_ClientSession = AwaClientSession_New();
 
     if (g_ClientSession != NULL) {
@@ -214,15 +218,15 @@ bool connectToAwa() {
     return g_ClientSession != NULL;
 }
 
-void disconnectAwa() {
-    if (g_ClientSession == NULL) {
+static void disconnectAwa(void) {
+    if (g_ClientSession == NULL)
         return;
-    }
+
     AwaClientSession_Disconnect(g_ClientSession);
     AwaClientSession_Free(&g_ClientSession);
 }
 
-void createIPSO(int objectId, int instance, int resourceId) {
+static void createIPSO(int objectId, int instance, int resourceId) {
     AwaClientSetOperation * operation = AwaClientSetOperation_New(g_ClientSession);
 
     char buf[40];
@@ -241,7 +245,7 @@ void createIPSO(int objectId, int instance, int resourceId) {
     AwaClientSetOperation_Free(&operation);
 }
 
-void setIPSO(int objectId, int instance, int resourceId, float value, bool shouldRetry) {
+static void setIPSO(int objectId, int instance, int resourceId, float value, bool shouldRetry) {
     char buf[40];
     sprintf(&buf[0], "/%d/%d/%d", objectId, instance, resourceId);
     LOG(LOG_INFO, "Storing value %0.3f into %s", value, &buf[0]);
@@ -259,7 +263,7 @@ void setIPSO(int objectId, int instance, int resourceId, float value, bool shoul
     }
 }
 
-float getIPSO(int objectId, int instance, int resourceId, float defaultValue) {
+static float getIPSO(int objectId, int instance, int resourceId, float defaultValue) {
     char buf[40];
     sprintf(&buf[0], "/%d/%d/%d", objectId, instance, resourceId);
     LOG(LOG_DEBUG, "Getting value of %s", &buf[0]);
@@ -284,86 +288,85 @@ float getIPSO(int objectId, int instance, int resourceId, float defaultValue) {
     return resultValue;
 }
 
-uint8_t setMeasurement(int objId, int instance, double value) {
+static uint8_t setMeasurement(int objId, int instance, double value) {
 
-	float minValue = getIPSO(objId, instance, 5601, 1000);
-	float maxValue = getIPSO(objId, instance, 5602, -1000);
+    float minValue = getIPSO(objId, instance, 5601, 1000);
+    float maxValue = getIPSO(objId, instance, 5602, -1000);
 
-	setIPSO(objId, instance, 5700, value, true);
-	if (minValue > value) {
-		setIPSO(objId, instance, 5601, value, true);
-	}
-	if (maxValue < value) {
-		setIPSO(objId, instance, 5602, value, true);
-	}
-	return 0;
+    setIPSO(objId, instance, 5700, value, true);
+    if (minValue > value) {
+        setIPSO(objId, instance, 5601, value, true);
+    }
+    if (maxValue < value) {
+        setIPSO(objId, instance, 5602, value, true);
+    }
+    return 0;
 }
 
-void handleMeasurements(uint8_t bus, int objId, int instance, SensorReadFunc sensorFunc) {
+static void handleMeasurements(uint8_t bus, int objId, int instance, SensorReadFunc sensorFunc) {
     float value = sensorFunc(bus);
     setMeasurement(objId, instance, value);
 }
 
 
-void handleWeatherMeasurements(uint8_t busIndex,
-		int temperatureInstance, int pressureInstance, int humidityInstance) {
+static void handleWeatherMeasurements(uint8_t busIndex,
+        int temperatureInstance, int pressureInstance, int humidityInstance) {
 
-	double data[] = {0,0,0};
+    double data[] = {0,0,0};
     if (readWeather(busIndex, data) < 0) {
-    	LOG(LOG_ERROR, "Reading weather on bus#%d failed!", busIndex);
-    	return;
+        LOG(LOG_ERROR, "Reading weather on bus#%d failed!", busIndex);
+        return;
     }
     LOG(LOG_INFO, "Reading weather measurements: temp = %f, pressure = %f, humidity = %f",
-    			data[0], data[1], data[2]);
+                data[0], data[1], data[2]);
     setMeasurement(3303, temperatureInstance, data[0]);
     setMeasurement(3315, pressureInstance, data[1]);
     setMeasurement(3304, humidityInstance, data[2]);
 }
 
-void performMeasurements() {
-    if (connectToAwa() == false) {
+static void performMeasurements(void) {
+    if (connectToAwa() == false)
         return;
-    }
 
     int index;
-    int instanceIndex[] = {0,		//3303 - temperature
-						   1, 		//3304 - humidity
-						   2,		//3315 - barometer
-						   3,		//3325 - concentration
-						   4,		//3330 - distance
-						   5};		//3328 - power
+    int instanceIndex[] = {0,        //3303 - temperature
+                           1,         //3304 - humidity
+                           2,        //3315 - barometer
+                           3,        //3325 - concentration
+                           4,        //3330 - distance
+                           5};        //3328 - power
 
     //contains last used instance ids for all registered sensors
-    int instances[] = {0,	//3303
-					   0,	//3304
-					   0,	//3315
-					   0,	//3325
-					   0,	//3330
-					   0};	//3328
+    int instances[] = {0,    //3303
+                       0,    //3304
+                       0,    //3315
+                       0,    //3325
+                       0,    //3330
+                       0};    //3328
 
     for (index = 0; index < 2; index++) {
         uint8_t bus = index == 0 ? MIKROBUS_1 : MIKROBUS_2;
 
         switch (index == 0 ? g_Click1Type : g_Click2Type) {
             case ClickType_Thermo3:
-            	handleMeasurements(bus, 3303, instances[instanceIndex[0]]++, &readThermo3);
+                handleMeasurements(bus, 3303, instances[instanceIndex[0]]++, &readThermo3);
 
                 break;
 
             case ClickType_Weather:
-            	handleWeatherMeasurements(bus,
-            			instances[instanceIndex[0]]++,
-						instances[instanceIndex[1]]++,
-						instances[instanceIndex[2]]++);
+                handleWeatherMeasurements(bus,
+                        instances[instanceIndex[0]]++,
+                        instances[instanceIndex[1]]++,
+                        instances[instanceIndex[2]]++);
 
-            	break;
+                break;
             case ClickType_Thunder:
-            	break;
+                break;
             case ClickType_AirQuality:
-            	handleMeasurements(bus, 3325, instances[instanceIndex[3]]++, &readAirQuality);
-            	break;
+                handleMeasurements(bus, 3325, instances[instanceIndex[3]]++, &readAirQuality);
+                break;
             case ClickType_CODetector:
-            	handleMeasurements(bus, 3325, instances[instanceIndex[3]]++, &readCO);
+                handleMeasurements(bus, 3325, instances[instanceIndex[3]]++, &readCO);
                 break;
             default:
                 break;
@@ -373,48 +376,52 @@ void performMeasurements() {
     disconnectAwa();
 }
 
-void cleanupOnExit() {
-    i2c_release();
-    disconnectAwa();
-}
+static void initialize(void) {
+    int index;
+    for (index = 0; index < 2; index++) {
+        uint8_t bus = index == 0 ? MIKROBUS_1 : MIKROBUS_2;
 
-void initialize() {
-	int index;
-	for (index = 0; index < 2; index++) {
-		uint8_t bus = index == 0 ? MIKROBUS_1 : MIKROBUS_2;
+        switch (index == 0 ? g_Click1Type : g_Click2Type) {
+        case ClickType_Thermo3:
+            break;
+        case ClickType_Weather:
+            i2c_select_bus(index);
+            if (weather_click_enable() < 0)
+                LOG(LOG_ERROR, "Failed to enable weather click on bus#%d\n", index);
+            break;
 
-		switch (index == 0 ? g_Click1Type : g_Click2Type) {
-		case ClickType_Thermo3:
-			break;
-		case ClickType_Weather:
-			i2c_select_bus(index);
-			if (weather_click_enable() < 0) {
-				LOG(LOG_ERROR, "Failed to enable weather click on bus#%d\n", index);
-			}
-			break;
-
-			//TODO: add rest if needed
-		default:
-			break;
-		}
-	}
+            //TODO: add rest if needed
+        default:
+            break;
+        }
+    }
 }
 
 int main(int argc, char **argv) {
-    if (loadConfiguration(argc, argv) == false) {
+    struct sigaction action = {
+        .sa_handler = exitApp,
+        .sa_flags = 0
+    };
+
+    if (loadConfiguration(argc, argv) == false)
+        return -1;
+
+    if (sigemptyset(&action.sa_mask) < 0
+    ||  sigaction(SIGINT, &action, NULL) < 0) {
+        LOG(LOG_ERROR, "Failed to set Control+C handler\n");
         return -1;
     }
-
-    signal(SIGINT, &cleanupOnExit);
-    atexit(&cleanupOnExit);
 
     i2c_init();
 
     initialize();
-    while(true) {
+    while(_Running) {
         performMeasurements();
         sleep(g_SleepTime);
     }
+
+    i2c_release();
+    disconnectAwa();
 
     return 0;
 }
