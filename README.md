@@ -3,7 +3,7 @@
 
 # The Weather Station - Lumpy 
 
-The Weather Station project, codenamed - **Lumpy**, allows you to create your DYI
+The Weather Station project, codenamed - **Lumpy**, allows you to create your DIY
 weather station, using [Creator Ci40](https://docs.creatordev.io/ci40/) and the
 [Click sensors](http://www.mikroe.com/click/). The system uses the 
 [Creator IoT Framework](https://docs.creatordev.io/deviceserver/guides/iot-framework/), 
@@ -16,10 +16,10 @@ providing connectivity for the sensors.
 ## Environment for Weather Station project  
 The complete IoT Environment is built using the following components:
 * IoT Framework
-* Ci40 Application - Allows the usage of clicks in mirkroBUS sockets
+* Ci40 Application - allows the usage of clicks in mikroBUS sockets
 * Contiki based applications - build for 6LoWPAN clicker platform:
   *  [Temperature Sensor](https://github.com/CreatorKit/temperature-sensor)
-* Mobile Application - Presents weather measurements  
+* Mobile Application - presents weather measurements  
 
 ## Application Dependencies
 
@@ -28,7 +28,7 @@ implementation of OMA Lightweight M2M protocol. Awa provides a secure and standa
 compliant device management solution, without the need for an intimate knowledge of 
 M2M protocols.  
 The MikroE Clicks (sensors) use
-[LetMeCreate](https://github.com/CreatorDev/LetMeCreate), an open source library 
+[LetMeCreate](https://github.com/francois-berder/LetMeCreate), an open source library 
 design to speed up the development with Ci40.
 
 
@@ -50,9 +50,13 @@ or you can build from the source code, if you plan to edit source (advanced user
 
 ### Install the Pre-built Package
 
-This quick process consists in transfer the latest release .ipk package file 
-onto Ci40, for example using **WGET**.
-Then on the package directory, to complete the installation execute:
+This quick process consists in transfering the .ipk package file onto Ci40.
+The latest release can be found in the releases page on this repository. You
+can use **WGET** to download the file directly to Ci40.
+
+Then, on the same directory where the .ipk package is located, complete the
+installation by executing:
+
 ```bash
 opkg install package_name
 ```
@@ -62,7 +66,7 @@ opkg install package_name
 This process fits for the most developers who want to edit and build from the 
 source code, confortable setting the building environment for OpenWRT applications. 
 
-It's assumed that you have build envriroment for ci40 openWrt described 
+It's assumed that you have build envriroment for Ci40 openWrt described 
 [here](https://github.com/CreatorKit/build) and this is located in folder `work`. 
 So structure inside will be:
 
@@ -93,17 +97,19 @@ Then execute commands:
 In menuconfig please press `/` and type `weather-station-gateway` one occurrence 
 will appear. Mark it with `<*>` and do save of config.
 In terminal type `make` to build openwrt image with this application.
-After uploading to ci40 edit file located in `/etc/init.d/weather_station_initd` 
+After uploading to Ci40 edit file located in `/etc/init.d/weather_station_initd` 
 and put proper switch arguments related to clicks which you put into mikroBus port.
 
 ---
 
 ## Setup For Execution
 
-Lumpy implements an AwaLWM2M Client to communicate the with the Creator Device 
-Server and its required few steps to be done before running the project. (Please, 
-verify if you have the application and its dependencies installed, described in 
-the previous steps).  
+The Weather Station implements an AwaLWM2M Client to communicate the with the 
+Creator Device Server. Bellow, you can find the steps to start the project on
+Ci40.
+
+**Note:** Verify if you have installed the application and its dependencies, 
+described in the previous steps.  
 
 1. First of all go to 
 [**Creator Developer Console**](http://console.creatordev.io/), create an account 
@@ -148,7 +154,7 @@ the objects, on **3303** its seen the temperature value measured by the sensor.
 From wide range of [MikroE clicks](http://www.mikroe.com/index.php?url=store/click/) 
 in this project you can use:
 
-| Click                                                   | weatherStation argument name |
+| Click                                                   | WeatherStation Argument Name |
 |-------------------------------------------------------- | ---------------------------- | 
 | [Air Quality](http://www.mikroe.com/click/air-quality/) | air                          |
 | [Carbon Monoxide](http://www.mikroe.com/click/co/)      | co                           |
@@ -165,7 +171,7 @@ To see all the options available, execute:
 ./weatherStation -h
 ```
 
-It will be printed:
+This option will print the following table, on your Ci40 console:
 
 | Switch        | Description |
 |---------------|----------|
@@ -175,9 +181,12 @@ It will be printed:
 |-v, --logLevel | Debug level from 1 to 5 (default:info): fatal(1), error(2), warning(3), info(4), debug(5) and max(>5)|
 |-h, --help     | prints help|
 
-Please refer to section 'Supported Clicks' to obtain argument values for switch 
---click1 and --click2. If one of slots is empty you can skip proper switch or set 
-it's value to `none`.  
+On section [Supported Clicks](#supported-clicks) you can find also the arguments,
+to use with the command. Example:
+
+```bash
+./weatherStation -1 [argument_name] -2 [argument_name]
+```
 
 If you have any problems installing or utilising the weather station, 
 please look into our [Creator Forum](https://forum.creatordev.io). 
