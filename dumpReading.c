@@ -135,7 +135,13 @@ static bool loadConfiguration(int argc, char **argv) {
                 break;
 
             case 'v':
-                g_LogLevel = atoi(optarg);
+                errno = 0;
+                g_LogLevel = strtol(optarg, NULL, 10);
+                if ((errno == ERANGE && (g_LogLevel == LONG_MAX || g_LogLevel == LONG_MIN))
+                ||  (errno != 0 && g_LogLevel == 0)) {
+                    success = false;
+                    g_LogLevel = LOG_INFO; /* Revert back to default log level */
+                }
                 break;
 
             case 'h':
