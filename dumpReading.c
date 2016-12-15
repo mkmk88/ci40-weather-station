@@ -60,7 +60,7 @@ static void exitApp(int __attribute__((unused))(signo)) {
 }
 
 ClickType configDecodeClickType(char* type) {
-    static struct element {
+    struct element {
         char* name;
         ClickType mapsTo;
     };
