@@ -117,10 +117,18 @@ static bool loadConfiguration(int argc, char **argv, options *opts) {
         switch (c) {
             case '1':
                 opts->click1 = configDecodeClickType(optarg);
+                if (opts->click1 == ClickType_None) {
+                    success = false;
+                    LOG(LOG_ERROR, "Failed to parse click1 option.\n");
+                }
                 break;
 
             case '2':
                 opts->click2 = configDecodeClickType(optarg);
+                if (opts->click2 == ClickType_None) {
+                    success = false;
+                    LOG(LOG_ERROR, "Failed to parse click2 option.\n");
+                }
                 break;
 
             case 's':
