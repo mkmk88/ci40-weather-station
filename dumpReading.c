@@ -344,7 +344,7 @@ static void handleWeatherMeasurements(uint8_t busIndex,
     setMeasurement(3304, humidityInstance, data[2]);
 }
 
-static void performMeasurements(ClickType click1Type, ClickType click2Type) {
+static void performMeasurements(ClickType clickType, uint8_t busIndex) {
     int index;
     int instanceIndex[] = {0,        //3303 - temperature
                            1,         //3304 - humidity
@@ -361,33 +361,29 @@ static void performMeasurements(ClickType click1Type, ClickType click2Type) {
                        0,    //3330
                        0};    //3328
 
-    for (index = 0; index < 2; index++) {
-        uint8_t bus = index == 0 ? MIKROBUS_1 : MIKROBUS_2;
+    switch (clickType) {
+        case ClickType_Thermo3:
+            handleMeasurements(busIndex, 3303, instances[instanceIndex[0]]++, &readThermo3);
 
-        switch (index == 0 ? click1Type : click2Type) {
-            case ClickType_Thermo3:
-                handleMeasurements(bus, 3303, instances[instanceIndex[0]]++, &readThermo3);
+            break;
 
-                break;
+        case ClickType_Weather:
+            handleWeatherMeasurements(busIndex,
+                    instances[instanceIndex[0]]++,
+                    instances[instanceIndex[1]]++,
+                    instances[instanceIndex[2]]++);
 
-            case ClickType_Weather:
-                handleWeatherMeasurements(bus,
-                        instances[instanceIndex[0]]++,
-                        instances[instanceIndex[1]]++,
-                        instances[instanceIndex[2]]++);
-
-                break;
-            case ClickType_Thunder:
-                break;
-            case ClickType_AirQuality:
-                handleMeasurements(bus, 3325, instances[instanceIndex[3]]++, &readAirQuality);
-                break;
-            case ClickType_CODetector:
-                handleMeasurements(bus, 3325, instances[instanceIndex[3]]++, &readCO);
-                break;
-            default:
-                break;
-        }
+            break;
+        case ClickType_Thunder:
+            break;
+        case ClickType_AirQuality:
+            handleMeasurements(busIndex, 3325, instances[instanceIndex[3]]++, &readAirQuality);
+            break;
+        case ClickType_CODetector:
+            handleMeasurements(busIndex, 3325, instances[instanceIndex[3]]++, &readCO);
+            break;
+        default:
+            break;
     }
 }
 
@@ -437,7 +433,8 @@ int main(int argc, char **argv) {
     initialize(opts.click1, opts.click2);
     while(_Running) {
         if (connectToAwa()) {
-            performMeasurements(opts.click1, opts.click2);
+            performMeasurements(opts.click1, MIKROBUS_1);
+            performMeasurements(opts.click2, MIKROBUS_2);
             disconnectAwa();
         }
         sleep(opts.sleepTime);
