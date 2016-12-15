@@ -53,33 +53,33 @@
 
 /** Macro for printing logging message with current time, function and line no. */
 #define DEBUG_PRINT                                                                   \
-	do {                                                                              \
-		time_t currentTime = time(NULL);                                              \
-		char buffer[TIME_BUFFER_SIZE] = {0};                                          \
-		strftime(buffer, TIME_BUFFER_SIZE, "%x %X", localtime(&currentTime));         \
-		fprintf(g_DebugStream,"[%s] %s:%d: ", buffer, __FILENAME__, __LINE__);        \
-	} while (0)
+    do {                                                                              \
+        time_t currentTime = time(NULL);                                              \
+        char buffer[TIME_BUFFER_SIZE] = {0};                                          \
+        strftime(buffer, TIME_BUFFER_SIZE, "%x %X", localtime(&currentTime));         \
+        fprintf(g_DebugStream,"[%s] %s:%d: ", buffer, __FILENAME__, __LINE__);        \
+    } while (0)
 
 /** Macro for logging message at the specified level. */
 #define LOG(level, ...)                                                               \
-	do {                                                                              \
-		if (level <= g_LogLevel)                                               \
-		{                                                                             \
-			if (g_DebugStream == NULL)                                                \
-				g_DebugStream = stdout;                                               \
-			fprintf(g_DebugStream, "\n");                                             \
-			if (g_LogLevel == LOG_DEBUG)                                       \
-			{                                                                         \
-				DEBUG_PRINT;                                                          \
-			}                                                                         \
-			fprintf(g_DebugStream, __VA_ARGS__);                                      \
-			fprintf(g_DebugStream, "\n");                                             \
-			fflush(g_DebugStream);                                                    \
-		}                                                                             \
-	} while (0)
+    do {                                                                              \
+        if (level <= g_LogLevel)                                               \
+        {                                                                             \
+            if (g_DebugStream == NULL)                                                \
+                g_DebugStream = stdout;                                               \
+            fprintf(g_DebugStream, "\n");                                             \
+            if (g_LogLevel == LOG_DEBUG)                                       \
+            {                                                                         \
+                DEBUG_PRINT;                                                          \
+            }                                                                         \
+            fprintf(g_DebugStream, __VA_ARGS__);                                      \
+            fprintf(g_DebugStream, "\n");                                             \
+            fflush(g_DebugStream);                                                    \
+        }                                                                             \
+    } while (0)
 
 /** Output stream to dump logs. */
 extern FILE *g_DebugStream;
 extern int g_LogLevel;
 
-#endif	/* LOG_H */
+#endif    /* LOG_H */

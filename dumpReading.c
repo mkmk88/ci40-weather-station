@@ -185,15 +185,15 @@ float readAirQuality(uint8_t busIndex) {
 }
 
 uint8_t readWeather(uint8_t busIndex, double* data) {
-	LOG(LOG_DEBUG, "Reading weather on bus#%d", busIndex);
+    LOG(LOG_DEBUG, "Reading weather on bus#%d", busIndex);
 
-	i2c_select_bus(busIndex);
-	if (weather_click_read_measurements(&data[0], &data[1], &data[2]) < 0) {
-		LOG(LOG_ERROR, "Reading weather measurements failed!");
-		return -1;
-	}
+    i2c_select_bus(busIndex);
+    if (weather_click_read_measurements(&data[0], &data[1], &data[2]) < 0) {
+        LOG(LOG_ERROR, "Reading weather measurements failed!");
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 bool connectToAwa(void) {
@@ -291,17 +291,17 @@ float getIPSO(int objectId, int instance, int resourceId, float defaultValue) {
 
 uint8_t setMeasurement(int objId, int instance, double value) {
 
-	float minValue = getIPSO(objId, instance, 5601, 1000);
-	float maxValue = getIPSO(objId, instance, 5602, -1000);
+    float minValue = getIPSO(objId, instance, 5601, 1000);
+    float maxValue = getIPSO(objId, instance, 5602, -1000);
 
-	setIPSO(objId, instance, 5700, value, true);
-	if (minValue > value) {
-		setIPSO(objId, instance, 5601, value, true);
-	}
-	if (maxValue < value) {
-		setIPSO(objId, instance, 5602, value, true);
-	}
-	return 0;
+    setIPSO(objId, instance, 5700, value, true);
+    if (minValue > value) {
+        setIPSO(objId, instance, 5601, value, true);
+    }
+    if (maxValue < value) {
+        setIPSO(objId, instance, 5602, value, true);
+    }
+    return 0;
 }
 
 void handleMeasurements(uint8_t bus, int objId, int instance, SensorReadFunc sensorFunc) {
@@ -311,15 +311,15 @@ void handleMeasurements(uint8_t bus, int objId, int instance, SensorReadFunc sen
 
 
 void handleWeatherMeasurements(uint8_t busIndex,
-		int temperatureInstance, int pressureInstance, int humidityInstance) {
+        int temperatureInstance, int pressureInstance, int humidityInstance) {
 
-	double data[] = {0,0,0};
+    double data[] = {0,0,0};
     if (readWeather(busIndex, data) < 0) {
-    	LOG(LOG_ERROR, "Reading weather on bus#%d failed!", busIndex);
-    	return;
+        LOG(LOG_ERROR, "Reading weather on bus#%d failed!", busIndex);
+        return;
     }
     LOG(LOG_INFO, "Reading weather measurements: temp = %f, pressure = %f, humidity = %f",
-    			data[0], data[1], data[2]);
+                data[0], data[1], data[2]);
     setMeasurement(3303, temperatureInstance, data[0]);
     setMeasurement(3315, pressureInstance, data[1]);
     setMeasurement(3304, humidityInstance, data[2]);
@@ -331,44 +331,44 @@ void performMeasurements(void) {
     }
 
     int index;
-    int instanceIndex[] = {0,		//3303 - temperature
-						   1, 		//3304 - humidity
-						   2,		//3315 - barometer
-						   3,		//3325 - concentration
-						   4,		//3330 - distance
-						   5};		//3328 - power
+    int instanceIndex[] = {0,        //3303 - temperature
+                           1,         //3304 - humidity
+                           2,        //3315 - barometer
+                           3,        //3325 - concentration
+                           4,        //3330 - distance
+                           5};        //3328 - power
 
     //contains last used instance ids for all registered sensors
-    int instances[] = {0,	//3303
-					   0,	//3304
-					   0,	//3315
-					   0,	//3325
-					   0,	//3330
-					   0};	//3328
+    int instances[] = {0,    //3303
+                       0,    //3304
+                       0,    //3315
+                       0,    //3325
+                       0,    //3330
+                       0};    //3328
 
     for (index = 0; index < 2; index++) {
         uint8_t bus = index == 0 ? MIKROBUS_1 : MIKROBUS_2;
 
         switch (index == 0 ? g_Click1Type : g_Click2Type) {
             case ClickType_Thermo3:
-            	handleMeasurements(bus, 3303, instances[instanceIndex[0]]++, &readThermo3);
+                handleMeasurements(bus, 3303, instances[instanceIndex[0]]++, &readThermo3);
 
                 break;
 
             case ClickType_Weather:
-            	handleWeatherMeasurements(bus,
-            			instances[instanceIndex[0]]++,
-						instances[instanceIndex[1]]++,
-						instances[instanceIndex[2]]++);
+                handleWeatherMeasurements(bus,
+                        instances[instanceIndex[0]]++,
+                        instances[instanceIndex[1]]++,
+                        instances[instanceIndex[2]]++);
 
-            	break;
+                break;
             case ClickType_Thunder:
-            	break;
+                break;
             case ClickType_AirQuality:
-            	handleMeasurements(bus, 3325, instances[instanceIndex[3]]++, &readAirQuality);
-            	break;
+                handleMeasurements(bus, 3325, instances[instanceIndex[3]]++, &readAirQuality);
+                break;
             case ClickType_CODetector:
-            	handleMeasurements(bus, 3325, instances[instanceIndex[3]]++, &readCO);
+                handleMeasurements(bus, 3325, instances[instanceIndex[3]]++, &readCO);
                 break;
             default:
                 break;
@@ -384,25 +384,25 @@ void cleanupOnExit(void) {
 }
 
 void initialize(void) {
-	int index;
-	for (index = 0; index < 2; index++) {
-		uint8_t bus = index == 0 ? MIKROBUS_1 : MIKROBUS_2;
+    int index;
+    for (index = 0; index < 2; index++) {
+        uint8_t bus = index == 0 ? MIKROBUS_1 : MIKROBUS_2;
 
-		switch (index == 0 ? g_Click1Type : g_Click2Type) {
-		case ClickType_Thermo3:
-			break;
-		case ClickType_Weather:
-			i2c_select_bus(index);
-			if (weather_click_enable() < 0) {
-				LOG(LOG_ERROR, "Failed to enable weather click on bus#%d\n", index);
-			}
-			break;
+        switch (index == 0 ? g_Click1Type : g_Click2Type) {
+        case ClickType_Thermo3:
+            break;
+        case ClickType_Weather:
+            i2c_select_bus(index);
+            if (weather_click_enable() < 0) {
+                LOG(LOG_ERROR, "Failed to enable weather click on bus#%d\n", index);
+            }
+            break;
 
-			//TODO: add rest if needed
-		default:
-			break;
-		}
-	}
+            //TODO: add rest if needed
+        default:
+            break;
+        }
+    }
 }
 
 int main(int argc, char **argv) {
