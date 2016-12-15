@@ -345,7 +345,6 @@ static void handleWeatherMeasurements(uint8_t busIndex,
 }
 
 static void performMeasurements(ClickType clickType, uint8_t busIndex) {
-    int index;
     int instanceIndex[] = {0,        //3303 - temperature
                            1,         //3304 - humidity
                            2,        //3315 - barometer
