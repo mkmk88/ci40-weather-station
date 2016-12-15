@@ -53,6 +53,16 @@ typedef struct {
     unsigned int sleepTime;     // in seconds
 } options;
 
+static const struct option long_options[] = {
+    { "click1", required_argument, 0, '1' },
+    { "click2", required_argument, 0, '2' },
+    { "bus", required_argument, 0, 'b'},
+    { "logLevel", required_argument, 0, 'v'},
+    { "help", no_argument, 0, 'h'},
+    { "sleep", required_argument, 0, 's'},
+    { 0, 0, 0, 0 }
+};
+
 AwaClientSession* g_ClientSession;
 int g_LogLevel = LOG_INFO;
 FILE* g_DebugStream;
@@ -104,14 +114,6 @@ static void printUsage(const char *program)
 static bool loadConfiguration(int argc, char **argv, options *opts) {
     bool success = true;
     int c;
-    static struct option long_options[] = {
-    { "click1", required_argument, 0, '1' },
-    { "click2", required_argument, 0, '2' },
-    { "bus", required_argument, 0, 'b'},
-    { "logLevel", required_argument, 0, 'v'},
-    { "help", no_argument, 0, 'h'},
-    { "sleep", required_argument, 0, 's'},
-    { 0, 0, 0, 0 } };
 
     while ((c = getopt_long(argc, argv, "s:1:2:c:b:hv:", long_options, NULL)) != -1) {
         switch (c) {
