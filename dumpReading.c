@@ -26,9 +26,7 @@
 #include <unistd.h>
 #include <letmecreate/letmecreate.h>
 #include <getopt.h>
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <awa/common.h>
 #include <awa/client.h>
 #include <awa/types.h>
