@@ -75,9 +75,9 @@ ClickType configDecodeClickType(char* type) {
 
     struct element* iter = &types[0];
     while (iter->name != NULL) {
-        if (strcasecmp(iter->name, type) == 0) {
+        if (strcasecmp(iter->name, type) == 0)
             return iter->mapsTo;
-        }
+
         iter++;
     }
 
@@ -116,7 +116,8 @@ static bool loadConfiguration(int argc, char **argv) {
         int option_index = 0;
         c = getopt_long(argc, argv, "s:1:2:c:b:hv:", long_options, &option_index);
 
-        if (c == -1) break;
+        if (c == -1)
+            break;
 
         switch (c) {
             case '1':
@@ -220,9 +221,9 @@ static bool connectToAwa(void) {
 }
 
 static void disconnectAwa(void) {
-    if (g_ClientSession == NULL) {
+    if (g_ClientSession == NULL)
         return;
-    }
+
     AwaClientSession_Disconnect(g_ClientSession);
     AwaClientSession_Free(&g_ClientSession);
 }
@@ -326,9 +327,8 @@ static void handleWeatherMeasurements(uint8_t busIndex,
 }
 
 static void performMeasurements(void) {
-    if (connectToAwa() == false) {
+    if (connectToAwa() == false)
         return;
-    }
 
     int index;
     int instanceIndex[] = {0,        //3303 - temperature
@@ -388,9 +388,8 @@ static void initialize(void) {
             break;
         case ClickType_Weather:
             i2c_select_bus(index);
-            if (weather_click_enable() < 0) {
+            if (weather_click_enable() < 0)
                 LOG(LOG_ERROR, "Failed to enable weather click on bus#%d\n", index);
-            }
             break;
 
             //TODO: add rest if needed
@@ -406,9 +405,8 @@ int main(int argc, char **argv) {
         .sa_flags = 0
     };
 
-    if (loadConfiguration(argc, argv) == false) {
+    if (loadConfiguration(argc, argv) == false)
         return -1;
-    }
 
     if (sigemptyset(&action.sa_mask) < 0
     ||  sigaction(SIGINT, &action, NULL) < 0) {
