@@ -84,7 +84,7 @@ static void exitApp(int __attribute__((unused))(signo)) {
     _Running = false;
 }
 
-ClickType configDecodeClickType(char* type) {
+static ClickType configDecodeClickType(char* type) {
     const struct element* iter = types;
     while (iter->name != NULL) {
         if (strcasecmp(iter->name, type) == 0)
