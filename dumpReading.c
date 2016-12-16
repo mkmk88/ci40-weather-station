@@ -315,12 +315,11 @@ static uint8_t sendMeasurement(AwaClientSession *session, int objId, int instanc
     float maxValue = getIPSO(session, objId, instance, 5602, -1000);
 
     setIPSO(session, objId, instance, 5700, value, true);
-    if (minValue > value) {
+    if (minValue > value)
         setIPSO(session, objId, instance, 5601, value, true);
-    }
-    if (maxValue < value) {
+    if (maxValue < value)
         setIPSO(session, objId, instance, 5602, value, true);
-    }
+
     return 0;
 }
 
