@@ -181,11 +181,7 @@ static float readThermo3(uint8_t busIndex) {
     LOG(LOG_DEBUG, "Reading thermo3 on bus#%d", busIndex);
     float temperature = 0.f;
 
-    i2c_select_bus(busIndex);
-
-    thermo3_click_enable(0);
     thermo3_click_get_temperature(&temperature);
-    thermo3_click_disable();
 
     return temperature;
 }
@@ -425,11 +421,12 @@ static void releaseMeasurements(struct measurement *measurements)
 }
 
 static void initialize_click(ClickType clickType, uint8_t busIndex) {
+    i2c_select_bus(busIndex);
     switch (clickType) {
         case ClickType_Thermo3:
+            thermo3_click_enable(0);
             break;
         case ClickType_Weather:
-            i2c_select_bus(busIndex);
             if (weather_click_enable() < 0)
                 LOG(LOG_ERROR, "Failed to enable weather click on bus#%d\n", busIndex);
             break;
