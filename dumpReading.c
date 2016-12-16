@@ -420,21 +420,28 @@ static void releaseMeasurements(struct measurement *measurements)
     }
 }
 
-static void initialize_click(ClickType clickType, uint8_t busIndex) {
+static int initialize_click(ClickType clickType, uint8_t busIndex) {
     i2c_select_bus(busIndex);
     switch (clickType) {
         case ClickType_Thermo3:
-            thermo3_click_enable(0);
+            if (thermo3_click_enable(0) < 0) {
+                LOG(LOG_ERROR, "Failed to enable thermo3 click on bus#%d\n", busIndex);
+                return -1;
+            }
             break;
         case ClickType_Weather:
-            if (weather_click_enable() < 0)
+            if (weather_click_enable() < 0) {
                 LOG(LOG_ERROR, "Failed to enable weather click on bus#%d\n", busIndex);
+                return -1;
+            }
             break;
 
             //TODO: add rest if needed
         default:
             break;
     }
+
+    return 0;
 }
 
 int main(int argc, char **argv) {
@@ -462,8 +469,12 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    initialize_click(opts.click1, MIKROBUS_1);
-    initialize_click(opts.click2, MIKROBUS_2);
+    if (initialize_click(opts.click1, MIKROBUS_1) < 0
+    ||  initialize_click(opts.click2, MIKROBUS_2) < 0) {
+        i2c_release();
+        return -1;
+    }
+
     while(_Running) {
         AwaClientSession* session = connectToAwa();
         if (session) {
