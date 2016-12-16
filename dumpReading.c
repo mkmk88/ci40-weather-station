@@ -444,6 +444,30 @@ static int initialize_click(ClickType clickType, uint8_t busIndex) {
     return 0;
 }
 
+static int release_click(ClickType clickType, uint8_t busIndex) {
+    i2c_select_bus(busIndex);
+    switch (clickType) {
+        case ClickType_Thermo3:
+            if (thermo3_click_disable() < 0) {
+                LOG(LOG_ERROR, "Failed to disable thermo3 click on bus#%d\n", busIndex);
+                return -1;
+            }
+            break;
+        case ClickType_Weather:
+            if (weather_click_disable() < 0) {
+                LOG(LOG_ERROR, "Failed to disable weather click on bus#%d\n", busIndex);
+                return -1;
+            }
+            break;
+        case ClickType_None:
+            LOG(LOG_WARN, "Tried to disable a click of type none on bus#%u\n", busIndex);
+            break;
+        default:
+            break;
+    }
+
+}
+
 int main(int argc, char **argv) {
     options opts = {
         .click1 = ClickType_None,
@@ -488,6 +512,8 @@ int main(int argc, char **argv) {
         sleep(opts.sleepTime);
     }
 
+    release_click(opts.click1, MIKROBUS_1);
+    release_click(opts.click2, MIKROBUS_2);
     i2c_release();
 
     return 0;
