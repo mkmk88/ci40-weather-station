@@ -315,7 +315,6 @@ static float getIPSO(AwaClientSession *session, int objectId, int instance, int 
 }
 
 static uint8_t sendMeasurement(AwaClientSession *session, int objId, int instance, double value) {
-
     float minValue = getIPSO(session, objId, instance, 5601, 1000);
     float maxValue = getIPSO(session, objId, instance, 5602, -1000);
 
@@ -359,10 +358,8 @@ static void handleMeasurements(uint8_t bus, int objId, int instance, SensorReadF
     addMeasurement(measurements, objId, instance, value);
 }
 
-
 static void handleWeatherMeasurements(uint8_t busIndex,
         int temperatureInstance, int pressureInstance, int humidityInstance, struct measurement **measurements) {
-
     double data[] = {0,0,0};
     if (readWeather(busIndex, data) < 0) {
         LOG(LOG_ERROR, "Reading weather on bus#%d failed!", busIndex);
@@ -387,16 +384,13 @@ static void performMeasurements(ClickType clickType, uint8_t busIndex, struct me
     switch (clickType) {
         case ClickType_Thermo3:
             handleMeasurements(busIndex, 3303, instances[0]++, &readThermo3, measurements);
-
             break;
-
         case ClickType_Weather:
             handleWeatherMeasurements(busIndex,
                     instances[0]++,
                     instances[1]++,
                     instances[2]++,
                     measurements);
-
             break;
         case ClickType_Thunder:
             break;
