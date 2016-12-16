@@ -460,7 +460,10 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    i2c_init();
+    if (i2c_init() < 0) {
+        LOG(LOG_ERROR, "Failed to initialize I2C.\n");
+        return -1;
+    }
 
     initialize_click(opts.click1, MIKROBUS_1);
     initialize_click(opts.click2, MIKROBUS_2);
