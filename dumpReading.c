@@ -181,7 +181,8 @@ static float readThermo3(uint8_t busIndex) {
     LOG(LOG_DEBUG, "Reading thermo3 on bus#%d", busIndex);
     float temperature = 0.f;
 
-    thermo3_click_get_temperature(&temperature);
+    if (thermo3_click_get_temperature(&temperature) < 0)
+        LOG(LOG_ERROR, "Reading temperature measurement failed!");
 
     return temperature;
 }
@@ -190,7 +191,8 @@ static float readCO(uint8_t busIndex) {
     LOG(LOG_DEBUG, "Reading CO on bus#%d", busIndex);
     uint16_t value = 0;
 
-    co_click_get_measure(busIndex, &value);
+    if (co_click_get_measure(busIndex, &value) < 0)
+        LOG(LOG_ERROR, "Reading CO measurement failed!");
 
     return value;
 }
@@ -199,7 +201,8 @@ static float readAirQuality(uint8_t busIndex) {
     LOG(LOG_DEBUG, "Reading air quality on bus#%d", busIndex);
     uint16_t value = 0;
 
-    air_quality_click_get_measure(busIndex, &value);
+    if (air_quality_click_get_measure(busIndex, &value) < 0)
+        LOG(LOG_ERROR, "Reading air quality measurement failed!");
 
     return value;
 }
