@@ -248,8 +248,8 @@ static void disconnectAwa(void) {
     AwaClientSession_Free(&g_ClientSession);
 }
 
-static void createIPSO(int objectId, int instance, int resourceId) {
-    AwaClientSetOperation * operation = AwaClientSetOperation_New(g_ClientSession);
+static void createIPSO(AwaClientSession *session, int objectId, int instance, int resourceId) {
+    AwaClientSetOperation * operation = AwaClientSetOperation_New(session);
 
     char buf[40];
     if (resourceId == -1) {
@@ -267,29 +267,29 @@ static void createIPSO(int objectId, int instance, int resourceId) {
     AwaClientSetOperation_Free(&operation);
 }
 
-static void setIPSO(int objectId, int instance, int resourceId, float value, bool shouldRetry) {
+static void setIPSO(AwaClientSession *session, int objectId, int instance, int resourceId, float value, bool shouldRetry) {
     char buf[40];
     sprintf(&buf[0], "/%d/%d/%d", objectId, instance, resourceId);
     LOG(LOG_INFO, "Storing value %0.3f into %s", value, &buf[0]);
-    AwaClientSetOperation* operation = AwaClientSetOperation_New(g_ClientSession);
+    AwaClientSetOperation* operation = AwaClientSetOperation_New(session);
     AwaClientSetOperation_AddValueAsFloat(operation, &buf[0], value);
     AwaError result = AwaClientSetOperation_Perform(operation, OPERATION_PERFORM_TIMEOUT);
     LOG(LOG_DEBUG, "Awa set response: %d", result);
     if (result == AwaError_Response || result == AwaError_PathInvalid || result == AwaError_PathNotFound) {
         LOG(LOG_DEBUG, "Looks like instance of %s not exists, try to create one", &buf[0]);
         if (shouldRetry == true) {
-            createIPSO(objectId, instance, -1);
-            createIPSO(objectId, instance, resourceId);
-            setIPSO(objectId, instance, resourceId, value, false);
+            createIPSO(session, objectId, instance, -1);
+            createIPSO(session, objectId, instance, resourceId);
+            setIPSO(session, objectId, instance, resourceId, value, false);
         }
     }
 }
 
-static float getIPSO(int objectId, int instance, int resourceId, float defaultValue) {
+static float getIPSO(AwaClientSession *session, int objectId, int instance, int resourceId, float defaultValue) {
     char buf[40];
     sprintf(&buf[0], "/%d/%d/%d", objectId, instance, resourceId);
     LOG(LOG_DEBUG, "Getting value of %s", &buf[0]);
-    AwaClientGetOperation * operation = AwaClientGetOperation_New(g_ClientSession);
+    AwaClientGetOperation * operation = AwaClientGetOperation_New(session);
 
     AwaClientGetOperation_AddPath(operation, &buf[0]);
     AwaError result = AwaClientGetOperation_Perform(operation, OPERATION_PERFORM_TIMEOUT);
@@ -312,15 +312,15 @@ static float getIPSO(int objectId, int instance, int resourceId, float defaultVa
 
 static uint8_t setMeasurement(int objId, int instance, double value) {
 
-    float minValue = getIPSO(objId, instance, 5601, 1000);
-    float maxValue = getIPSO(objId, instance, 5602, -1000);
+    float minValue = getIPSO(g_ClientSession, objId, instance, 5601, 1000);
+    float maxValue = getIPSO(g_ClientSession, objId, instance, 5602, -1000);
 
-    setIPSO(objId, instance, 5700, value, true);
+    setIPSO(g_ClientSession, objId, instance, 5700, value, true);
     if (minValue > value) {
-        setIPSO(objId, instance, 5601, value, true);
+        setIPSO(g_ClientSession, objId, instance, 5601, value, true);
     }
     if (maxValue < value) {
-        setIPSO(objId, instance, 5602, value, true);
+        setIPSO(g_ClientSession, objId, instance, 5602, value, true);
     }
     return 0;
 }
