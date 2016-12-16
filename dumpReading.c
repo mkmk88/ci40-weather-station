@@ -75,6 +75,13 @@ static const struct option long_options[] = {
     { 0, 0, 0, 0 }
 };
 
+struct measurement {
+    struct measurement *next;
+    int objID;
+    int instance;
+    float value;
+};
+
 AwaClientSession* g_ClientSession;
 int g_LogLevel = LOG_INFO;
 FILE* g_DebugStream;
@@ -325,14 +332,39 @@ static uint8_t setMeasurement(int objId, int instance, double value) {
     return 0;
 }
 
-static void handleMeasurements(uint8_t bus, int objId, int instance, SensorReadFunc sensorFunc) {
+static void addMeasurement(struct measurement **measurements, int objId, int instance, float value)
+{
+    struct measurement *last = *measurements;
+    struct measurement *m;
+
+    while (last)
+        last = last->next;
+
+    m = malloc(sizeof(struct measurement));
+    if (!m) {
+        LOG(LOG_ERROR, "Failed to allocate memory for a measurement.\n");
+        return;
+    }
+
+    m->next = NULL;
+    m->objID = objId;
+    m->instance = instance;
+    m->value = value;
+
+    if (last == NULL)
+        *measurements = m;
+    else
+        last->next = m;
+}
+
+static void handleMeasurements(uint8_t bus, int objId, int instance, SensorReadFunc sensorFunc, struct measurement **measurements) {
     float value = sensorFunc(bus);
-    setMeasurement(objId, instance, value);
+    addMeasurement(measurements, objId, instance, value);
 }
 
 
 static void handleWeatherMeasurements(uint8_t busIndex,
-        int temperatureInstance, int pressureInstance, int humidityInstance) {
+        int temperatureInstance, int pressureInstance, int humidityInstance, struct measurement **measurements) {
 
     double data[] = {0,0,0};
     if (readWeather(busIndex, data) < 0) {
@@ -341,12 +373,12 @@ static void handleWeatherMeasurements(uint8_t busIndex,
     }
     LOG(LOG_INFO, "Reading weather measurements: temp = %f, pressure = %f, humidity = %f",
                 data[0], data[1], data[2]);
-    setMeasurement(3303, temperatureInstance, data[0]);
-    setMeasurement(3315, pressureInstance, data[1]);
-    setMeasurement(3304, humidityInstance, data[2]);
+    addMeasurement(measurements, 3303, temperatureInstance, data[0]);
+    addMeasurement(measurements, 3315, pressureInstance, data[1]);
+    addMeasurement(measurements, 3304, humidityInstance, data[2]);
 }
 
-static void performMeasurements(ClickType clickType, uint8_t busIndex) {
+static void performMeasurements(ClickType clickType, uint8_t busIndex, struct measurement **measurements) {
     //contains last used instance ids for all registered sensors
     int instances[] = {0,    //3303
                        0,    //3304
@@ -357,7 +389,7 @@ static void performMeasurements(ClickType clickType, uint8_t busIndex) {
 
     switch (clickType) {
         case ClickType_Thermo3:
-            handleMeasurements(busIndex, 3303, instances[0]++, &readThermo3);
+            handleMeasurements(busIndex, 3303, instances[0]++, &readThermo3, measurements);
 
             break;
 
@@ -365,19 +397,39 @@ static void performMeasurements(ClickType clickType, uint8_t busIndex) {
             handleWeatherMeasurements(busIndex,
                     instances[0]++,
                     instances[1]++,
-                    instances[2]++);
+                    instances[2]++,
+                    measurements);
 
             break;
         case ClickType_Thunder:
             break;
         case ClickType_AirQuality:
-            handleMeasurements(busIndex, 3325, instances[3]++, &readAirQuality);
+            handleMeasurements(busIndex, 3325, instances[3]++, &readAirQuality, measurements);
             break;
         case ClickType_CODetector:
-            handleMeasurements(busIndex, 3325, instances[3]++, &readCO);
+            handleMeasurements(busIndex, 3325, instances[3]++, &readCO, measurements);
             break;
         default:
             break;
+    }
+}
+
+static void sendMeasurements(struct measurement *measurements)
+{
+    struct measurement *ptr = measurements;
+    while (ptr) {
+        setMeasurement(ptr->objID, ptr->instance, ptr->value);
+        ptr = ptr->next;
+    }
+}
+
+static void releaseMeasurements(struct measurement *measurements)
+{
+    struct measurement *ptr = measurements;
+    while (ptr) {
+        struct measurement *next = ptr->next;
+        free(ptr);
+        ptr = next;
     }
 }
 
@@ -423,8 +475,11 @@ int main(int argc, char **argv) {
     initialize_click(opts.click2, MIKROBUS_2);
     while(_Running) {
         if (connectToAwa()) {
-            performMeasurements(opts.click1, MIKROBUS_1);
-            performMeasurements(opts.click2, MIKROBUS_2);
+            struct measurement *measurements = NULL;
+            performMeasurements(opts.click1, MIKROBUS_1, &measurements);
+            performMeasurements(opts.click2, MIKROBUS_2, &measurements);
+            sendMeasurements(measurements);
+            releaseMeasurements(measurements);
             disconnectAwa();
         }
         sleep(opts.sleepTime);
