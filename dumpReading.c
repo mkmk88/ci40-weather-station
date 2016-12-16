@@ -82,7 +82,6 @@ struct measurement {
     float value;
 };
 
-AwaClientSession* g_ClientSession;
 int g_LogLevel = LOG_INFO;
 FILE* g_DebugStream;
 static volatile bool _Running = true;
@@ -221,38 +220,36 @@ static uint8_t readWeather(uint8_t busIndex, double* data) {
     return 0;
 }
 
-static bool connectToAwa(void) {
-    g_ClientSession = AwaClientSession_New();
-    if (g_ClientSession == NULL) {
+static AwaClientSession* connectToAwa(void) {
+    AwaClientSession *session = AwaClientSession_New();
+    if (!session) {
         LOG(LOG_ERROR, "AwaClientSession_New() failed\n");
-        return false;
+        return NULL;
     }
 
-    if (AwaClientSession_SetIPCAsUDP(g_ClientSession, "127.0.0.1", 12345) != AwaError_Success) {
+    if (AwaClientSession_SetIPCAsUDP(session, "127.0.0.1", 12345) != AwaError_Success) {
         LOG(LOG_ERROR, "AwaClientSession_SetIPCAsUDP() failed\n");
-        AwaClientSession_Free(&g_ClientSession);
-        g_ClientSession = NULL;
-        return false;
+        AwaClientSession_Free(&session);
+        return NULL;
     }
 
-    if (AwaClientSession_Connect(g_ClientSession) != AwaError_Success) {
+    if (AwaClientSession_Connect(session) != AwaError_Success) {
         LOG(LOG_ERROR, "AwaClientSession_Connect() failed\n");
-        AwaClientSession_Free(&g_ClientSession);
-        g_ClientSession = NULL;
-        return false;
+        AwaClientSession_Free(&session);
+        return NULL;
     }
 
     LOG(LOG_INFO, "Client Session Established: 127.0.0.1:12345\n");
 
-    return true;
+    return session;
 }
 
-static void disconnectAwa(void) {
-    if (g_ClientSession == NULL)
+static void disconnectAwa(AwaClientSession *session) {
+    if (!session)
         return;
 
-    AwaClientSession_Disconnect(g_ClientSession);
-    AwaClientSession_Free(&g_ClientSession);
+    AwaClientSession_Disconnect(session);
+    AwaClientSession_Free(&session);
 }
 
 static void createIPSO(AwaClientSession *session, int objectId, int instance, int resourceId) {
@@ -317,17 +314,17 @@ static float getIPSO(AwaClientSession *session, int objectId, int instance, int 
     return resultValue;
 }
 
-static uint8_t sendMeasurement(int objId, int instance, double value) {
+static uint8_t sendMeasurement(AwaClientSession *session, int objId, int instance, double value) {
 
-    float minValue = getIPSO(g_ClientSession, objId, instance, 5601, 1000);
-    float maxValue = getIPSO(g_ClientSession, objId, instance, 5602, -1000);
+    float minValue = getIPSO(session, objId, instance, 5601, 1000);
+    float maxValue = getIPSO(session, objId, instance, 5602, -1000);
 
-    setIPSO(g_ClientSession, objId, instance, 5700, value, true);
+    setIPSO(session, objId, instance, 5700, value, true);
     if (minValue > value) {
-        setIPSO(g_ClientSession, objId, instance, 5601, value, true);
+        setIPSO(session, objId, instance, 5601, value, true);
     }
     if (maxValue < value) {
-        setIPSO(g_ClientSession, objId, instance, 5602, value, true);
+        setIPSO(session, objId, instance, 5602, value, true);
     }
     return 0;
 }
@@ -414,11 +411,11 @@ static void performMeasurements(ClickType clickType, uint8_t busIndex, struct me
     }
 }
 
-static void sendMeasurements(struct measurement *measurements)
+static void sendMeasurements(AwaClientSession *session, struct measurement *measurements)
 {
     struct measurement *ptr = measurements;
     while (ptr) {
-        sendMeasurement(ptr->objID, ptr->instance, ptr->value);
+        sendMeasurement(session, ptr->objID, ptr->instance, ptr->value);
         ptr = ptr->next;
     }
 }
@@ -474,19 +471,19 @@ int main(int argc, char **argv) {
     initialize_click(opts.click1, MIKROBUS_1);
     initialize_click(opts.click2, MIKROBUS_2);
     while(_Running) {
-        if (connectToAwa()) {
+        AwaClientSession* session = connectToAwa();
+        if (session) {
             struct measurement *measurements = NULL;
             performMeasurements(opts.click1, MIKROBUS_1, &measurements);
             performMeasurements(opts.click2, MIKROBUS_2, &measurements);
-            sendMeasurements(measurements);
+            sendMeasurements(session, measurements);
             releaseMeasurements(measurements);
-            disconnectAwa();
+            disconnectAwa(session);
         }
         sleep(opts.sleepTime);
     }
 
     i2c_release();
-    disconnectAwa();
 
     return 0;
 }
