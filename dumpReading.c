@@ -317,7 +317,7 @@ static float getIPSO(AwaClientSession *session, int objectId, int instance, int 
     return resultValue;
 }
 
-static uint8_t setMeasurement(int objId, int instance, double value) {
+static uint8_t sendMeasurement(int objId, int instance, double value) {
 
     float minValue = getIPSO(g_ClientSession, objId, instance, 5601, 1000);
     float maxValue = getIPSO(g_ClientSession, objId, instance, 5602, -1000);
@@ -418,7 +418,7 @@ static void sendMeasurements(struct measurement *measurements)
 {
     struct measurement *ptr = measurements;
     while (ptr) {
-        setMeasurement(ptr->objID, ptr->instance, ptr->value);
+        sendMeasurement(ptr->objID, ptr->instance, ptr->value);
         ptr = ptr->next;
     }
 }
