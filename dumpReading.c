@@ -267,7 +267,7 @@ static void createIPSO(AwaClientSession *session, int objectId, int instance, in
     AwaClientSetOperation_Free(&operation);
 }
 
-static void setIPSO(AwaClientSession *session, int objectId, int instance, int resourceId, float value, bool shouldRetry) {
+static AwaError setIPSO(AwaClientSession *session, int objectId, int instance, int resourceId, float value) {
     char buf[40];
     sprintf(&buf[0], "/%d/%d/%d", objectId, instance, resourceId);
     LOG(LOG_INFO, "Storing value %0.3f into %s", value, &buf[0]);
@@ -275,13 +275,15 @@ static void setIPSO(AwaClientSession *session, int objectId, int instance, int r
     AwaClientSetOperation_AddValueAsFloat(operation, &buf[0], value);
     AwaError result = AwaClientSetOperation_Perform(operation, OPERATION_PERFORM_TIMEOUT);
     LOG(LOG_DEBUG, "Awa set response: %d", result);
-    if (result == AwaError_Response || result == AwaError_PathInvalid || result == AwaError_PathNotFound) {
-        LOG(LOG_DEBUG, "Looks like instance of %s not exists, try to create one", &buf[0]);
-        if (shouldRetry == true) {
-            createIPSO(session, objectId, instance, -1);
-            createIPSO(session, objectId, instance, resourceId);
-            setIPSO(session, objectId, instance, resourceId, value, false);
-        }
+    return result;
+}
+
+static void setIPSOwithRetry(AwaClientSession *session, int objectId, int instance, int resourceId, float value) {
+    if (setIPSO(session, objectId, instance, resourceId, value) != AwaError_Success) {
+        LOG(LOG_ERROR, "Failed to set IPSO object /%d/%d/%d. Retrying...\n", objectId, instance, resourceId);
+        createIPSO(session, objectId, instance, -1);
+        createIPSO(session, objectId, instance, resourceId);
+        setIPSO(session, objectId, instance, resourceId, value);
     }
 }
 
@@ -314,11 +316,11 @@ static void sendMeasurement(AwaClientSession *session, struct measurement m) {
     float minValue = getIPSO(session, m.objID, m.instance, 5601, 1000);
     float maxValue = getIPSO(session, m.objID, m.instance, 5602, -1000);
 
-    setIPSO(session, m.objID, m.instance, 5700, m.value, true);
+    setIPSOwithRetry(session, m.objID, m.instance, 5700, m.value);
     if (minValue > m.value)
-        setIPSO(session, m.objID, m.instance, 5601, m.value, true);
+        setIPSOwithRetry(session, m.objID, m.instance, 5601, m.value);
     if (maxValue < m.value)
-        setIPSO(session, m.objID, m.instance, 5602, m.value, true);
+        setIPSOwithRetry(session, m.objID, m.instance, 5602, m.value);
 }
 
 static void addMeasurement(struct measurement **measurements, int objId, int instance, float value)
