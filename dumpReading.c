@@ -461,9 +461,6 @@ static int release_click(ClickType clickType, uint8_t busIndex) {
                 return -1;
             }
             break;
-        case ClickType_None:
-            LOG(LOG_WARN, "Tried to disable a click of type none on bus#%u\n", busIndex);
-            break;
         default:
             break;
     }
