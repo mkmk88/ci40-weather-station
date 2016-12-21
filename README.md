@@ -34,7 +34,7 @@ design to speed up the development with Ci40.
 
 ### How to Install Dependencies on Ci40
 
-AwaLWM2M and LetMeCreate have a package ready to install on OpneWRT. For this, 
+AwaLWM2M and LetMeCreate have a package ready to install on OpenWRT. For this, 
 on your Ci40 console execute:
 
 ```bash
