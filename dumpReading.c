@@ -73,6 +73,7 @@ typedef struct {
     ClickType click1;
     ClickType click2;
     unsigned int sleepTime;     // in seconds
+    char address[16];
     int port;
 } options;
 
@@ -122,19 +123,20 @@ static void printUsage(const char *program)
         " -2, --click2   : Type of click installed in microBus slot 2 (default:none)\n"
         "                  air, co, none, thermo3, thunder, weather\n"
         " -s, --sleep    : delay between measurements in seconds. (default: %ds)\n"
+        " -a, --address  : Address to connect to AWA client daemon (default: %s)\n"
         " -p, --port     : Port to connect to AWA client daemon. (default: %d)\n"
         " -v, --logLevel : Debug level from 1 to 5\n"
         "                   fatal(1), error(2), warning(3), info(4), debug(5) and max(>5)\n"
         "                   default is info.\n"
         " -h, --help     : prints this help\n",
-        program, DEFAULT_CLIENT_DAEMON_PORT, DEFAULT_SLEEP_TIME);
+        program, DEFAULT_SLEEP_TIME, DEFAULT_CLIENT_DAEMON_ADDRESS, DEFAULT_CLIENT_DAEMON_PORT);
 }
 
 static bool loadConfiguration(int argc, char **argv, options *opts) {
     bool success = true;
     int c;
 
-    while ((c = getopt_long(argc, argv, "s:1:2:c:b:hv:p:", long_options, NULL)) != -1) {
+    while ((c = getopt_long(argc, argv, "s:1:2:c:b:hv:p:a:", long_options, NULL)) != -1) {
         switch (c) {
             case '1':
                 opts->click1 = configDecodeClickType(optarg);
@@ -160,6 +162,14 @@ static bool loadConfiguration(int argc, char **argv, options *opts) {
                     success = false;
                     LOG(LOG_ERROR, "Failed to parse sleep option.\n");
                 }
+                break;
+
+            case 'a':
+                if (strlen(optarg) >= sizeof(opts->address)) {
+                    success = false;
+                    LOG(LOG_ERROR, "Failed to parse address option.\n");
+                }
+                strcpy(opts->address, optarg);
                 break;
 
             case 'p':
@@ -243,14 +253,14 @@ static uint8_t readWeather(uint8_t busIndex, double* data) {
     return 0;
 }
 
-static AwaClientSession* connectToAwa(int port) {
+static AwaClientSession* connectToAwa(char *address, int port) {
     AwaClientSession *session = AwaClientSession_New();
     if (!session) {
         LOG(LOG_ERROR, "AwaClientSession_New() failed\n");
         return NULL;
     }
 
-    if (AwaClientSession_SetIPCAsUDP(session, DEFAULT_CLIENT_DAEMON_ADDRESS, port) != AwaError_Success) {
+    if (AwaClientSession_SetIPCAsUDP(session, address, port) != AwaError_Success) {
         LOG(LOG_ERROR, "AwaClientSession_SetIPCAsUDP() failed\n");
         AwaClientSession_Free(&session);
         return NULL;
@@ -262,7 +272,7 @@ static AwaClientSession* connectToAwa(int port) {
         return NULL;
     }
 
-    LOG(LOG_INFO, "Client Session Established: %s:%d\n", DEFAULT_CLIENT_DAEMON_ADDRESS, port);
+    LOG(LOG_INFO, "Client Session Established: %s:%d\n", address, port);
 
     return session;
 }
@@ -486,6 +496,7 @@ int main(int argc, char **argv) {
         .click1 = ClickType_None,
         .click2 = ClickType_None,
         .sleepTime = DEFAULT_SLEEP_TIME,
+        .address = DEFAULT_CLIENT_DAEMON_ADDRESS,
         .port = DEFAULT_CLIENT_DAEMON_PORT,
     };
     struct sigaction action = {
@@ -514,7 +525,7 @@ int main(int argc, char **argv) {
     }
 
     while(_Running) {
-        AwaClientSession* session = connectToAwa(opts.port);
+        AwaClientSession* session = connectToAwa(opts.address, opts.port);
         if (session) {
             //contains last used instance ids for all registered sensors
             int instances[6] = {
