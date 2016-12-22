@@ -329,13 +329,7 @@ static void sendMeasurement(AwaClientSession *session, struct measurement m) {
 
 static void addMeasurement(struct measurement **measurements, int objId, int instance, float value)
 {
-    struct measurement *last = *measurements;
-    struct measurement *m;
-
-    while (last)
-        last = last->next;
-
-    m = malloc(sizeof(struct measurement));
+    struct measurement *m = malloc(sizeof(struct measurement));
     if (!m) {
         LOG(LOG_ERROR, "Failed to allocate memory for a measurement.\n");
         return;
@@ -346,10 +340,14 @@ static void addMeasurement(struct measurement **measurements, int objId, int ins
     m->instance = instance;
     m->value = value;
 
-    if (last == NULL)
+    if (*measurements == NULL)
         *measurements = m;
-    else
+    else {
+        struct measurement *last = *measurements;
+        while (last->next)
+            last = last->next;
         last->next = m;
+    }
 }
 
 static void handleMeasurements(uint8_t bus, int objId, int instance, SensorReadFunc sensorFunc, struct measurement **measurements) {
