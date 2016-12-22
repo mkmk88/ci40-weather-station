@@ -73,6 +73,7 @@ typedef struct {
     ClickType click1;
     ClickType click2;
     unsigned int sleepTime;     // in seconds
+    int port;
 } options;
 
 static const struct option long_options[] = {
@@ -82,6 +83,7 @@ static const struct option long_options[] = {
     { "logLevel", required_argument, 0, 'v'},
     { "help", no_argument, 0, 'h'},
     { "sleep", required_argument, 0, 's'},
+    { "port", required_argument, 0, 'p'},
     { 0, 0, 0, 0 }
 };
 
@@ -120,18 +122,19 @@ static void printUsage(const char *program)
         " -2, --click2   : Type of click installed in microBus slot 2 (default:none)\n"
         "                  air, co, none, thermo3, thunder, weather\n"
         " -s, --sleep    : delay between measurements in seconds. (default: %ds)\n"
+        " -p, --port     : Port to connect to AWA client daemon. (default: %d)\n"
         " -v, --logLevel : Debug level from 1 to 5\n"
         "                   fatal(1), error(2), warning(3), info(4), debug(5) and max(>5)\n"
         "                   default is info.\n"
         " -h, --help     : prints this help\n",
-        program, DEFAULT_SLEEP_TIME);
+        program, DEFAULT_CLIENT_DAEMON_PORT, DEFAULT_SLEEP_TIME);
 }
 
 static bool loadConfiguration(int argc, char **argv, options *opts) {
     bool success = true;
     int c;
 
-    while ((c = getopt_long(argc, argv, "s:1:2:c:b:hv:", long_options, NULL)) != -1) {
+    while ((c = getopt_long(argc, argv, "s:1:2:c:b:hv:p:", long_options, NULL)) != -1) {
         switch (c) {
             case '1':
                 opts->click1 = configDecodeClickType(optarg);
@@ -156,6 +159,16 @@ static bool loadConfiguration(int argc, char **argv, options *opts) {
                 ||  (opts->sleepTime == 0 && errno != 0)) {
                     success = false;
                     LOG(LOG_ERROR, "Failed to parse sleep option.\n");
+                }
+                break;
+
+            case 'p':
+                errno = 0;
+                opts->port = strtol(optarg, NULL, 10);
+                if ((errno == ERANGE && (opts->port == LONG_MAX || opts->port == LONG_MIN))
+                ||  (errno != 0 && opts->port == 0)) {
+                    success = false;
+                    LOG(LOG_ERROR, "Failed to parse port option.\n");
                 }
                 break;
 
@@ -230,14 +243,14 @@ static uint8_t readWeather(uint8_t busIndex, double* data) {
     return 0;
 }
 
-static AwaClientSession* connectToAwa(void) {
+static AwaClientSession* connectToAwa(int port) {
     AwaClientSession *session = AwaClientSession_New();
     if (!session) {
         LOG(LOG_ERROR, "AwaClientSession_New() failed\n");
         return NULL;
     }
 
-    if (AwaClientSession_SetIPCAsUDP(session, DEFAULT_CLIENT_DAEMON_ADDRESS, DEFAULT_CLIENT_DAEMON_PORT) != AwaError_Success) {
+    if (AwaClientSession_SetIPCAsUDP(session, DEFAULT_CLIENT_DAEMON_ADDRESS, port) != AwaError_Success) {
         LOG(LOG_ERROR, "AwaClientSession_SetIPCAsUDP() failed\n");
         AwaClientSession_Free(&session);
         return NULL;
@@ -249,7 +262,7 @@ static AwaClientSession* connectToAwa(void) {
         return NULL;
     }
 
-    LOG(LOG_INFO, "Client Session Established: %s:%d\n", DEFAULT_CLIENT_DAEMON_ADDRESS, DEFAULT_CLIENT_DAEMON_PORT);
+    LOG(LOG_INFO, "Client Session Established: %s:%d\n", DEFAULT_CLIENT_DAEMON_ADDRESS, port);
 
     return session;
 }
@@ -472,7 +485,8 @@ int main(int argc, char **argv) {
     options opts = {
         .click1 = ClickType_None,
         .click2 = ClickType_None,
-        .sleepTime = DEFAULT_SLEEP_TIME
+        .sleepTime = DEFAULT_SLEEP_TIME,
+        .port = DEFAULT_CLIENT_DAEMON_PORT,
     };
     struct sigaction action = {
         .sa_handler = exitApp,
@@ -500,7 +514,7 @@ int main(int argc, char **argv) {
     }
 
     while(_Running) {
-        AwaClientSession* session = connectToAwa();
+        AwaClientSession* session = connectToAwa(opts.port);
         if (session) {
             //contains last used instance ids for all registered sensors
             int instances[6] = {
