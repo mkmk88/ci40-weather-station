@@ -33,8 +33,8 @@
 #include <awa/types.h>
 #include "log.h"
 
-#define OPERATION_PERFORM_TIMEOUT 1000
-#define DEFAULT_SLEEP_TIME          (60)
+#define OPERATION_PERFORM_TIMEOUT       (1000)
+#define DEFAULT_SLEEP_TIME              (60)
 #define DEFAULT_CLIENT_DAEMON_ADDRESS   "127.0.0.1"
 #define DEFAULT_CLIENT_DAEMON_PORT      (12345)
 
