@@ -43,8 +43,8 @@ endef
 
 define Package/ci40-weather-station/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/* $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scripts/clientObjectsDefine.sh $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/* $(1)/usr/bin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/data/object_definitions.xml $(1)/usr/bin/data/weather-station
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scripts/weather_station_initd $(1)/etc/init.d/
 endef
