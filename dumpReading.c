@@ -371,15 +371,7 @@ static void handleWeatherMeasurements(uint8_t busIndex,
     addMeasurement(measurements, 3304, humidityInstance, data[2]);
 }
 
-static void performMeasurements(ClickType clickType, uint8_t busIndex, struct measurement **measurements) {
-    //contains last used instance ids for all registered sensors
-    int instances[] = {0,    //3303
-                       0,    //3304
-                       0,    //3315
-                       0,    //3325
-                       0,    //3330
-                       0};    //3328
-
+static void performMeasurements(ClickType clickType, uint8_t busIndex, struct measurement **measurements, int *instances) {
     switch (clickType) {
         case ClickType_Thermo3:
             handleMeasurements(busIndex, 3303, instances[0]++, &readThermo3, measurements);
@@ -502,9 +494,18 @@ int main(int argc, char **argv) {
     while(_Running) {
         AwaClientSession* session = connectToAwa();
         if (session) {
+            //contains last used instance ids for all registered sensors
+            int instances[6] = {
+                0,  //3303 (temperature)
+                0,  //3304 (humidity)
+                0,  //3315 (barometer)
+                0,  //3325 (concentration)
+                0,  //3330 (distance)
+                0   //3328 (power)
+            };
             struct measurement *measurements = NULL;
-            performMeasurements(opts.click1, MIKROBUS_1, &measurements);
-            performMeasurements(opts.click2, MIKROBUS_2, &measurements);
+            performMeasurements(opts.click1, MIKROBUS_1, &measurements, instances);
+            performMeasurements(opts.click2, MIKROBUS_2, &measurements, instances);
             sendMeasurements(session, measurements);
             releaseMeasurements(measurements);
             disconnectAwa(session);
