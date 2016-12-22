@@ -35,6 +35,7 @@
 
 #define OPERATION_PERFORM_TIMEOUT 1000
 #define DEFAULT_SLEEP_TIME          (60)
+#define DEFAULT_CLIENT_DAEMON_ADDRESS   "127.0.0.1"
 #define DEFAULT_CLIENT_DAEMON_PORT      (12345)
 
 #define TEMPERATURE_IPSO_OBJECT_ID      (3303)
@@ -236,7 +237,7 @@ static AwaClientSession* connectToAwa(void) {
         return NULL;
     }
 
-    if (AwaClientSession_SetIPCAsUDP(session, "127.0.0.1", DEFAULT_CLIENT_DAEMON_PORT) != AwaError_Success) {
+    if (AwaClientSession_SetIPCAsUDP(session, DEFAULT_CLIENT_DAEMON_ADDRESS, DEFAULT_CLIENT_DAEMON_PORT) != AwaError_Success) {
         LOG(LOG_ERROR, "AwaClientSession_SetIPCAsUDP() failed\n");
         AwaClientSession_Free(&session);
         return NULL;
@@ -248,7 +249,7 @@ static AwaClientSession* connectToAwa(void) {
         return NULL;
     }
 
-    LOG(LOG_INFO, "Client Session Established: 127.0.0.1:%d\n", DEFAULT_CLIENT_DAEMON_PORT);
+    LOG(LOG_INFO, "Client Session Established: %s:%d\n", DEFAULT_CLIENT_DAEMON_ADDRESS, DEFAULT_CLIENT_DAEMON_PORT);
 
     return session;
 }
