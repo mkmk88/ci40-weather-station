@@ -36,6 +36,14 @@
 #define OPERATION_PERFORM_TIMEOUT 1000
 #define DEFAULT_SLEEP_TIME          (60)
 
+#define TEMPERATURE_IPSO_OBJECT_ID      (3303)
+#define HUMIDITY_IPSO_OBJECT_ID         (3304)
+#define BAROMETER_IPSO_OBJECT_ID        (3315)
+#define CONCENTRATION_IPSO_OBJECT_ID    (3325)
+#define DISTANCE_IPSO_OBJECT_ID         (3330)
+#define POWER_IPSO_OBJECT_ID            (3328)
+
+
 typedef float (*SensorReadFunc)(uint8_t);
 
 typedef enum {
@@ -364,15 +372,15 @@ static void handleWeatherMeasurements(uint8_t busIndex,
     }
     LOG(LOG_INFO, "Reading weather measurements: temp = %f, pressure = %f, humidity = %f",
                 data[0], data[1], data[2]);
-    addMeasurement(measurements, 3303, temperatureInstance, data[0]);
-    addMeasurement(measurements, 3315, pressureInstance, data[1]);
-    addMeasurement(measurements, 3304, humidityInstance, data[2]);
+    addMeasurement(measurements, TEMPERATURE_IPSO_OBJECT_ID, temperatureInstance, data[0]);
+    addMeasurement(measurements, BAROMETER_IPSO_OBJECT_ID, pressureInstance, data[1]);
+    addMeasurement(measurements, HUMIDITY_IPSO_OBJECT_ID, humidityInstance, data[2]);
 }
 
 static void performMeasurements(ClickType clickType, uint8_t busIndex, struct measurement **measurements, int *instances) {
     switch (clickType) {
         case ClickType_Thermo3:
-            handleMeasurements(busIndex, 3303, instances[0]++, &readThermo3, measurements);
+            handleMeasurements(busIndex, TEMPERATURE_IPSO_OBJECT_ID, instances[0]++, &readThermo3, measurements);
             break;
         case ClickType_Weather:
             handleWeatherMeasurements(busIndex,
@@ -384,10 +392,10 @@ static void performMeasurements(ClickType clickType, uint8_t busIndex, struct me
         case ClickType_Thunder:
             break;
         case ClickType_AirQuality:
-            handleMeasurements(busIndex, 3325, instances[3]++, &readAirQuality, measurements);
+            handleMeasurements(busIndex, CONCENTRATION_IPSO_OBJECT_ID, instances[3]++, &readAirQuality, measurements);
             break;
         case ClickType_CODetector:
-            handleMeasurements(busIndex, 3325, instances[3]++, &readCO, measurements);
+            handleMeasurements(busIndex, CONCENTRATION_IPSO_OBJECT_ID, instances[3]++, &readCO, measurements);
             break;
         default:
             break;
