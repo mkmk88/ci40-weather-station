@@ -181,6 +181,7 @@ static float readThermo3(uint8_t busIndex) {
     LOG(LOG_DEBUG, "Reading thermo3 on bus#%d", busIndex);
     float temperature = 0.f;
 
+    i2c_select_bus(busIndex);
     if (thermo3_click_get_temperature(&temperature) < 0)
         LOG(LOG_ERROR, "Reading temperature measurement failed!");
 
