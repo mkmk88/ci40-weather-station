@@ -285,6 +285,37 @@ static void disconnectAwa(AwaClientSession *session) {
     AwaClientSession_Free(&session);
 }
 
+static void readSerialNumberFromEthernetMAC(char *address, int port)
+{
+    char mac_address[18];
+    FILE *file = fopen("/sys/class/net/eth0/address", "r");
+    if (!file) {
+        LOG(LOG_ERROR, "Could not read ethernet mac address.\n");
+        return;
+    }
+
+    if (fread(mac_address, 1, 17, file) != 17) {
+        fclose(file);
+        return;
+    }
+
+    fclose(file);
+
+    mac_address[17] = '\0';
+
+    AwaClientSession* session = connectToAwa(address, port);
+    if (!session)
+        return;
+
+    AwaClientSetOperation* operation = AwaClientSetOperation_New(session);
+    AwaClientSetOperation_AddValueAsCString(operation, "/3/0/2", mac_address);
+    AwaError result = AwaClientSetOperation_Perform(operation, OPERATION_PERFORM_TIMEOUT);
+    if (result != AwaError_Success)
+        LOG(LOG_ERROR, "Failed to set of object /3/0/2");
+
+    disconnectAwa(session);
+}
+
 static void createIPSO(AwaClientSession *session, int objectId, int instance, int resourceId) {
     AwaClientSetOperation * operation = AwaClientSetOperation_New(session);
 
@@ -523,6 +554,8 @@ int main(int argc, char **argv) {
         i2c_release();
         return -1;
     }
+
+    readSerialNumberFromEthernetMAC(opts.address, opts.port);
 
     while(_Running) {
         AwaClientSession* session = connectToAwa(opts.address, opts.port);
