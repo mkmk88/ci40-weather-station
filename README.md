@@ -121,7 +121,7 @@ between the AwaLWM2M Client (Ci40) and the Device Server. Then, transfer your
 establishes the connection against the device server. Execute on Ci40 console: 
 
 ```bash
- awa_clientd --bootstrap coaps://deviceserver.creatordev.io:15684 -s -c /root/certificate.crt --endPointName "weather_station" -d
+ awa_clientd --bootstrap coaps://deviceserver.creatordev.io:15684 -s -c /root/certificate.crt --endPointName "weather_station" -o /usr/bin/weather-station/object_definitions.xml -d
 ```
 **Note:** As the client is running as a daemon on background, any log will be 
 displayed on the console. However is possible to verify the process running on 
