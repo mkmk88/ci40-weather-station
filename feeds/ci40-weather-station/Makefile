@@ -1,12 +1,12 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=ci40-weather-station
+PKG_NAME:=ci40-weather-station-extended
 PKG_VERSION:=HEAD
 PKG_RELEASE:=1
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/CreatorDev/ci40-weather-station
+PKG_SOURCE_URL:=https://github.com/mkmk88/ci40-weather-station-extended
 
 #usefull for development
 #PKG_SOURCE_URL:=$(TOPDIR)/../../packages/weather-station-gateway
@@ -29,7 +29,7 @@ define Package/ci40-weather-station
   TITLE:=Weather Station gateway app
 endef
 
-define Package/ci40-weather-station/description
+define Package/ci40-weather-station-extended/description
   Imagination Technologies Weather Station gateway app
 endef
 
@@ -46,7 +46,7 @@ define Package/ci40-weather-station/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/* $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scripts/clientObjectsDefine.sh $(1)/usr/bin
 	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scripts/weather_station_initd $(1)/etc/init.d/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scripts/weather_station_extended_initd $(1)/etc/init.d/
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
