@@ -3,7 +3,9 @@
 
 # The Lumpy Ci40 Application  
 
-The Lumpy Ci40 is part of bigger project called "Weather Station". Using code from this repository you will be able to handle various sensor clicks inserted into your Ci40 board. Values measured by those clicks will be sent to Creator Device Server. 
+The Lumpy Ci40 is part of bigger project called "Weather Station". Using code from this repository you will be able to handle various sensor clicks inserted into your Ci40 board. Values measured by those clicks will be sent to Creator Device Server.
+
+This fork reads data from another device that is connected through AwaLWM2M instead of reading directly from click board connected to Creator. That way you can put your sensor for example on 6lowpan clicker board.
 
 ---
 
