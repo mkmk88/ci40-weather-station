@@ -6,7 +6,7 @@ STOP=10
 SERVICE_DAEMONIZE=1
 SERVICE_WRITE_PID=1
 
-APP=weatherStation
+APP=weatherStationExtended
 
 start(){
         sleep 5

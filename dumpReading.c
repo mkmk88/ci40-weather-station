@@ -47,8 +47,15 @@ typedef enum {
     ClickType_CODetector
 } ClickType;
 
+typedef enum {
+    IfaceType_microBus = 0,
+    IfaceType_AwaLWM2M
+} IfaceType;
+
 ClickType g_Click1Type = ClickType_None;
 ClickType g_Click2Type = ClickType_None;
+IfaceType g_IfaceType = IfaceType_microBus;
+
 AwaClientSession* g_ClientSession;
 int g_LogLevel = LOG_INFO;
 FILE* g_DebugStream;
@@ -90,6 +97,8 @@ static void printUsage(const char *program)
         " -v, --logLevel : Debug level from 1 to 5\n"
         "                   fatal(1), error(2), warning(3), info(4), debug(5) and max(>5)\n"
         "                   default is info.\n"
+        " -i, --iface    : Interface on which sensor is available (default:microBus)\n"
+        "                  microBus, AwaLWM2m\n"
         " -h, --help     : prints this help\n",
         program);
 }
@@ -102,14 +111,14 @@ bool loadConfiguration(int argc, char **argv) {
         static struct option long_options[] = {
         { "click1", required_argument, 0, '1' },
         { "click2", required_argument, 0, '2' },
-        { "bus", required_argument, 0, 'b'},
+        { "iface", required_argument, 0, 'i'},
         { "logLevel", required_argument, 0, 'v'},
         { "help", no_argument, 0, 'h'},
         { "sleep", required_argument, 0, 's'},
         { 0, 0, 0, 0 } };
 
         int option_index = 0;
-        c = getopt_long(argc, argv, "s:1:2:c:b:hv:", long_options, &option_index);
+        c = getopt_long(argc, argv, "s:1:2:c:i:hv:", long_options, &option_index);
 
         if (c == -1) break;
 

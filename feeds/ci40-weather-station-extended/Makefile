@@ -6,10 +6,10 @@ PKG_RELEASE:=1
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/mkmk88/ci40-weather-station-extended
+#PKG_SOURCE_URL:=https://github.com/mkmk88/ci40-weather-station-extended
 
 #usefull for development
-#PKG_SOURCE_URL:=$(TOPDIR)/../../packages/weather-station-gateway
+PKG_SOURCE_URL:=$(TOPDIR)/../packages/ci40-weather-station-extended
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_VERSION:=$(PKG_VERSION)
@@ -22,7 +22,7 @@ CMAKE_OPTIONS += -DSTAGING_DIR=$(STAGING_DIR)
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
 
-define Package/ci40-weather-station
+define Package/ci40-weather-station-extended
   SECTION:=utils
   CATEGORY:=Utilities
   DEPENDS:= +awalwm2m +letmecreate
@@ -41,10 +41,10 @@ define Build/Clean
 	$(call Build/Compile/Default,clean)
 endef
 
-define Package/ci40-weather-station/install
+define Package/ci40-weather-station-extended/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/* $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scripts/clientObjectsDefine.sh $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scripts/clientObjectsDefineExtended.sh $(1)/usr/bin
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scripts/weather_station_extended_initd $(1)/etc/init.d/
 endef
