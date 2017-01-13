@@ -32,9 +32,12 @@
 #include <awa/common.h>
 #include <awa/client.h>
 #include <awa/types.h>
+#include <awa/server.h>
 #include "log.h"
 
 #define OPERATION_PERFORM_TIMEOUT 1000
+#define EXTENDED_OPERATION_PERFORM_TIMEOUT 5000
+#define CLIENT_ID "MK_NODE1"
 
 typedef float (*SensorReadFunc)(uint8_t);
 
@@ -49,12 +52,14 @@ typedef enum {
 
 typedef enum {
     IfaceType_microBus = 0,
-    IfaceType_AwaLWM2M
+    IfaceType_AwaLWM2M,
+    IfaceType_Unknown = 99
 } IfaceType;
 
 ClickType g_Click1Type = ClickType_None;
 ClickType g_Click2Type = ClickType_None;
 IfaceType g_IfaceType = IfaceType_microBus;
+AwaServerSession *g_server_session;
 
 AwaClientSession* g_ClientSession;
 int g_LogLevel = LOG_INFO;
@@ -86,6 +91,19 @@ ClickType configDecodeClickType(char* type) {
     return ClickType_None;
 }
 
+static IfaceType configDecodeIfaceType(char *type)
+{
+    if (!strcmp(type, "microBus")) {
+        return IfaceType_microBus;
+    }
+    if (!strcmp(type, "AwaLWM2M")) {
+        return IfaceType_AwaLWM2M;
+    }
+
+    LOG(LOG_ERROR, "Unknown interface\n");
+    return IfaceType_Unknown;
+}
+
 static void printUsage(const char *program)
 {
     printf("Usage: %s [options]\n\n"
@@ -98,7 +116,7 @@ static void printUsage(const char *program)
         "                   fatal(1), error(2), warning(3), info(4), debug(5) and max(>5)\n"
         "                   default is info.\n"
         " -i, --iface    : Interface on which sensor is available (default:microBus)\n"
-        "                  microBus, AwaLWM2m\n"
+        "                  microBus, AwaLWM2M\n"
         " -h, --help     : prints this help\n",
         program);
 }
@@ -144,6 +162,14 @@ bool loadConfiguration(int argc, char **argv) {
                 success = false;
                 break;
 
+            case 'i':
+                g_IfaceType = configDecodeIfaceType(optarg);
+                if (g_IfaceType == IfaceType_Unknown) {
+                    printUsage(argv[0]);
+                    success = false;
+                }
+                break;
+
             case '?':
                 /* getopt_long already printed an error message. */
                 success = false;
@@ -160,12 +186,24 @@ bool loadConfiguration(int argc, char **argv) {
 float readThermo3(uint8_t busIndex) {
     LOG(LOG_DEBUG, "Reading thermo3 on bus#%d", busIndex);
     float temperature = 0.f;
+    const AwaServerReadResponse *response;
+    const AwaFloat *value = NULL;
 
-    i2c_select_bus(busIndex);
+    if (g_IfaceType == IfaceType_AwaLWM2M) {
+        AwaServerReadOperation * operation = AwaServerReadOperation_New(g_server_session);
+        AwaServerReadOperation_AddPath(operation, CLIENT_ID, "/3303/0/5700");
+        AwaServerReadOperation_Perform(operation, EXTENDED_OPERATION_PERFORM_TIMEOUT);
+        response = AwaServerReadOperation_GetResponse(operation, CLIENT_ID);
+        AwaServerReadResponse_GetValueAsFloatPointer(response, "/3303/0/5700", &value);
+        temperature = (float)*value;
+        AwaServerReadOperation_Free(&operation);
+    } else {
+        i2c_select_bus(busIndex);
 
-    thermo3_click_enable(0);
-    thermo3_click_get_temperature(&temperature);
-    thermo3_click_disable();
+        thermo3_click_enable(0);
+        thermo3_click_get_temperature(&temperature);
+        thermo3_click_disable();
+    }
 
     return temperature;
 }
@@ -382,9 +420,16 @@ void performMeasurements() {
     disconnectAwa();
 }
 
+static void disconnectExtendedAwa()
+{
+    AwaServerSession_Disconnect(g_server_session);
+    AwaServerSession_Free(&g_server_session);
+}
+
 void cleanupOnExit() {
     i2c_release();
     disconnectAwa();
+    disconnectExtendedAwa();
 }
 
 void initialize() {
@@ -409,6 +454,19 @@ void initialize() {
 	}
 }
 
+bool initialize_extended_awa()
+{
+    g_server_session = AwaServerSession_New();
+    if (g_server_session) {
+        if (AwaServerSession_Connect(g_server_session) != AwaError_Success) {
+            return false;
+        }
+        return true;
+    }
+
+    return false;
+}
+
 int main(int argc, char **argv) {
     if (loadConfiguration(argc, argv) == false) {
         return -1;
@@ -417,9 +475,20 @@ int main(int argc, char **argv) {
     signal(SIGINT, &cleanupOnExit);
     atexit(&cleanupOnExit);
 
-    i2c_init();
+    switch (g_IfaceType) {
+        case IfaceType_microBus:            
+            i2c_init();
+            initialize();
+            break;
+        case IfaceType_AwaLWM2M:
+            if (!initialize_extended_awa()) {
+                    return 1;
+            }
+            break;
+        default:
+            return 1;
+    }
 
-    initialize();
     while(true) {
         performMeasurements();
         sleep(g_SleepTime);

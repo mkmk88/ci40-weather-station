@@ -10,7 +10,7 @@ APP=weatherStationExtended
 
 start(){
         sleep 5
-        service_start /usr/bin/$APP -1 weather -2 none -s 300
+        service_start /usr/bin/$APP -1 thermo3 -i AwaLWM2M -s 5
 }
 
 stop() {
