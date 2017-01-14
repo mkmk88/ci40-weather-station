@@ -192,11 +192,14 @@ float readThermo3(uint8_t busIndex) {
     if (g_IfaceType == IfaceType_AwaLWM2M) {
         AwaServerReadOperation * operation = AwaServerReadOperation_New(g_server_session);
         AwaServerReadOperation_AddPath(operation, CLIENT_ID, "/3303/0/5700");
-        AwaServerReadOperation_Perform(operation, EXTENDED_OPERATION_PERFORM_TIMEOUT);
-        response = AwaServerReadOperation_GetResponse(operation, CLIENT_ID);
-        AwaServerReadResponse_GetValueAsFloatPointer(response, "/3303/0/5700", &value);
-        temperature = (float)*value;
-        AwaServerReadOperation_Free(&operation);
+        if (AwaServerReadOperation_Perform(operation, EXTENDED_OPERATION_PERFORM_TIMEOUT) == AwaError_Success) {
+            response = AwaServerReadOperation_GetResponse(operation, CLIENT_ID);
+            if (response && AwaServerReadResponse_GetValueAsFloatPointer(response, "/3303/0/5700", &value)
+                    == AwaError_Success) {
+                temperature = (float)*value;
+                AwaServerReadOperation_Free(&operation);
+            }
+        }
     } else {
         i2c_select_bus(busIndex);
 
@@ -458,8 +461,8 @@ bool initialize_extended_awa()
 {
     g_server_session = AwaServerSession_New();
     if (g_server_session) {
-        if (AwaServerSession_Connect(g_server_session) != AwaError_Success) {
-            return false;
+        while(AwaServerSession_Connect(g_server_session) != AwaError_Success) {
+            sleep(g_SleepTime);
         }
         return true;
     }
