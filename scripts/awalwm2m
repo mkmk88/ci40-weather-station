@@ -1,0 +1,10 @@
+BOOTSTRAP_EXT=coaps://deviceserver.flowcloud.systems:15684
+#BOOTSTRAP=coap://[2001:1418:100::1]:15684
+INTERFACE=lowpan0
+ADDRESS_FAMILY=6
+VERBOSE=--verbose
+ENDPOINT_NAME_PATH=/etc/creator/endPointName
+EXT_ENDPOINT_NAME="weather_station"
+DS_CERT=/root/certificate.crt
+OBJECTS_DEF=/root/temp_object.xml
+APPLY_OBJECTS_DEF=/usr/bin/clientObjectsDefine.sh
